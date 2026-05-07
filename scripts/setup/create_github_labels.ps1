@@ -22,6 +22,12 @@ Write-Host "Creating labels for $repo ..." -ForegroundColor Cyan
 & $gh label create "phase:1-core"    --color "FBCA04" --description "Phase 1 - Core pipeline implementation"                --repo $repo --force
 & $gh label create "phase:2-enhance" --color "0E8A16" --description "Phase 2 - Enhancements (FII/DII, BSE, etc.)"           --repo $repo --force
 
+# ── MEDALLION LAYER LABELS ───────────────────────────────────────────────────
+& $gh label create "layer:landing" --color "F4A261" --description "Landing zone - raw files before any processing"         --repo $repo --force
+& $gh label create "layer:bronze"  --color "CD7F32" --description "Bronze - raw Parquet, immutable, no transformation"     --repo $repo --force
+& $gh label create "layer:silver"  --color "C0C0C0" --description "Silver - cleaned, joined, validated Iceberg tables"     --repo $repo --force
+& $gh label create "layer:gold"    --color "FFD700" --description "Gold - ML-ready features, Iceberg, all 10 feature groups" --repo $repo --force
+
 # ── COMPONENT LABELS ─────────────────────────────────────────────────────────
 & $gh label create "comp:ingestion"   --color "B60205" --description "J01-J03: Data ingestion jobs"                   --repo $repo --force
 & $gh label create "comp:feature-eng" --color "D93F0B" --description "J04: Feature engineering — Gold layer"          --repo $repo --force
@@ -46,5 +52,5 @@ Write-Host "Creating labels for $repo ..." -ForegroundColor Cyan
 & $gh label create "wontfix"       --color "EDEDED" --description "Decided not to implement"                           --repo $repo --force
 
 Write-Host ""
-Write-Host "Done. 27 labels created on $repo." -ForegroundColor Green
+Write-Host "Done. 31 labels created on $repo." -ForegroundColor Green
 Write-Host "Verify at: https://github.com/$repo/labels" -ForegroundColor Cyan
