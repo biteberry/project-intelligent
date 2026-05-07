@@ -1,0 +1,14 @@
+default_horizon: swing
+horizons:
+  intraday:
+    enabled: false
+    bar_interval: 1h
+    prediction_window_bars: 1
+  swing:
+    enabled: true
+    bar_interval: 1d
+    prediction_window_days: 5
+  long:
+    enabled: false
+    bar_interval: 1d
+    prediction_window_days: 20

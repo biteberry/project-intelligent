@@ -1,0 +1,11 @@
+symbol,cap_tier,sector,market_cap
+AAPL,large,Technology,2800000000000
+MSFT,large,Technology,3000000000000
+JPM,large,Financials,500000000000
+XOM,large,Energy,450000000000
+PLTR,mid,Technology,50000000000
+ROKU,mid,Communication Services,12000000000
+SOFI,mid,Financials,8000000000
+UPST,small,Financials,2000000000
+RUN,small,Utilities,1800000000
+FUBO,small,Communication Services,600000000

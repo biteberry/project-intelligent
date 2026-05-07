@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Silver OHLCV",
+  "type": "object",
+  "required": [
+    "date",
+    "symbol",
+    "open",
+    "high",
+    "low",
+    "close",
+    "adj_close",
+    "volume",
+    "cap_tier",
+    "is_valid_row"
+  ],
+  "properties": {
+    "date": { "type": "string", "format": "date-time" },
+    "symbol": { "type": "string" },
+    "open": { "type": "number" },
+    "high": { "type": "number" },
+    "low": { "type": "number" },
+    "close": { "type": "number" },
+    "adj_close": { "type": "number" },
+    "volume": { "type": "number" },
+    "sector": { "type": ["string", "null"] },
+    "market_cap": { "type": ["number", "null"] },
+    "cap_tier": { "type": "string", "enum": ["large", "mid", "small", "unknown"] },
+    "is_valid_row": { "type": "boolean" }
+  }
+}

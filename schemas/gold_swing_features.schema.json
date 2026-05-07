@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Gold Swing Features",
+  "type": "object",
+  "required": [
+    "date",
+    "symbol",
+    "cap_tier",
+    "close",
+    "ret_1d",
+    "ret_5d",
+    "vol_10d",
+    "rsi_14",
+    "target_return_5d",
+    "target_direction_5d"
+  ],
+  "properties": {
+    "date": { "type": "string", "format": "date-time" },
+    "symbol": { "type": "string" },
+    "cap_tier": { "type": "string", "enum": ["large", "mid", "small", "unknown"] },
+    "close": { "type": "number" },
+    "ret_1d": { "type": "number" },
+    "ret_5d": { "type": "number" },
+    "ret_10d": { "type": "number" },
+    "sma_10_ratio": { "type": "number" },
+    "vol_10d": { "type": "number" },
+    "rsi_14": { "type": "number" },
+    "target_return_5d": { "type": "number" },
+    "target_direction_5d": { "type": "integer", "enum": [0, 1] }
+  }
+}
