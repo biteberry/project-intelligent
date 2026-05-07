@@ -1,26 +1,40 @@
-# S3 Data Lake Provisioning Plan (Issue #45)
+# S3 Data Lake Provisioning (Issue #45)
 
-This document outlines the provisioning plan for the `project-intelligent` S3 data lake.
+This document outlines how the `project-intelligent` S3 data lake was provisioned and secured using the AWS CLI.
+
+The provisioning script used to apply these configurations is available in `provision_s3.ps1`.
 
 ## Naming Convention
-All buckets are appended with the AWS Account ID (`307828758318`) to ensure global uniqueness.
+Because AWS S3 bucket names must be unique across the entire world, all buckets are appended with the AWS Account ID (`307828758318`) to ensure global uniqueness.
 
-## Provisioning Steps
+## Provisioning Steps & Explanations
 
-### 1. Create the 5 Buckets (Issue #62)
-- `project-intelligent-landing-307828758318`
-- `project-intelligent-bronze-307828758318`
-- `project-intelligent-silver-307828758318`
-- `project-intelligent-gold-307828758318`
-- `project-intelligent-artifacts-307828758318`
-- *Command:* `aws s3 mb s3://<bucket-name> --region ap-south-1`
+### Step 1: Bucket Creation (`aws s3 mb`)
+```powershell
+aws s3 mb s3://project-intelligent-landing-307828758318 --region ap-south-1
+```
+* **Explanation:** `mb` stands for "Make Bucket". This command contacts AWS and creates the 5 globally unique buckets in the Mumbai (`ap-south-1`) region.
 
-### 2. Secure the Buckets (Issue #63)
-- **Block Public Access:** `aws s3api put-public-access-block` applied to all 5 buckets to ensure no data is accidentally exposed to the internet.
-- **Server-Side Encryption:** `aws s3api put-bucket-encryption` applied to enforce `AES256` (SSE-S3) encryption at rest for all 5 buckets.
+### Step 2: Blocking Public Access (`aws s3api put-public-access-block`)
+```powershell
+aws s3api put-public-access-block --bucket <name> --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+```
+* **Explanation:** This applies the strict "Security Baseline". It flips all four AWS public-blocking switches to `true`. This guarantees that even if someone accidentally writes a bad policy later, these buckets can *never* be accessed from the public internet.
 
-### 3. Configure Data Resiliency (Issue #64)
-- **Enable Versioning:** `aws s3api put-bucket-versioning` applied to the **Bronze, Silver, Gold, and Artifacts** buckets for point-in-time recovery and Iceberg schema evolution rollbacks. The Landing zone does not get versioning since it only holds temporary raw files.
+### Step 3: Server-Side Encryption (`aws s3api put-bucket-encryption`)
+```powershell
+aws s3api put-bucket-encryption --bucket <name> --server-side-encryption-configuration file://encryption-config.json
+```
+* **Explanation:** This tells AWS to intercept any file uploaded to these buckets and scramble (encrypt) it using the `AES256` standard before saving it to the hard drive. The configuration is read from `encryption-config.json`.
 
-### 4. Configure Cost Optimization (Issue #65)
-- **Lifecycle Rule:** `aws s3api put-bucket-lifecycle-configuration` applied to the **Landing** bucket to automatically delete raw files older than 30 days.
+### Step 4: Enabling Versioning (`aws s3api put-bucket-versioning`)
+```powershell
+aws s3api put-bucket-versioning --bucket <name> --versioning-configuration Status=Enabled
+```
+* **Explanation:** Applied only to the Bronze, Silver, Gold, and Artifacts buckets. If a file is overwritten or deleted, S3 will quietly keep the old version hidden in the background. This is crucial for Apache Iceberg's "Time Travel" feature, allowing you to rollback your database if bad stock data gets ingested. The Landing zone does not get versioning since it only holds temporary raw files.
+
+### Step 5: Cost Optimization Lifecycle (`aws s3api put-bucket-lifecycle-configuration`)
+```powershell
+aws s3api put-bucket-lifecycle-configuration --bucket project-intelligent-landing-307828758318 --lifecycle-configuration file://landing-lifecycle.json
+```
+* **Explanation:** The Landing bucket is just a temporary drop-zone for raw CSVs downloaded from Yahoo Finance. This rule tells AWS to act like an automatic janitor—any file sitting in that bucket for exactly 30 days is permanently deleted so you never pay for unnecessary storage. The configuration is read from `landing-lifecycle.json`.
