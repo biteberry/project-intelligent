@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DeployArtifactsToS3",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::project-intelligent-artifacts",
+                "arn:aws:s3:::project-intelligent-artifacts/*"
+            ]
+        },
+        {
+            "Sid": "UpdateLambdaCode",
+            "Effect": "Allow",
+            "Action": "lambda:UpdateFunctionCode",
+            "Resource": "arn:aws:lambda:*:*:function:project-intelligent-*"
+        }
+    ]
+}

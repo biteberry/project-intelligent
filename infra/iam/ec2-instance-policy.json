@@ -1,0 +1,64 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3ProjectBucketsAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::project-intelligent-*",
+                "arn:aws:s3:::project-intelligent-*/*"
+            ]
+        },
+        {
+            "Sid": "DynamoDBProjectTablesAccess",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:Query"
+            ],
+            "Resource": "arn:aws:dynamodb:*:*:table/project-intelligent-*"
+        },
+        {
+            "Sid": "SSMSessionManagerCore",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameter",
+                "ssm:UpdateInstanceInformation",
+                "ssmmessages:CreateControlChannel",
+                "ssmmessages:CreateDataChannel",
+                "ssmmessages:OpenControlChannel",
+                "ssmmessages:OpenDataChannel"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SecretsManagerProjectAccess",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue"
+            ],
+            "Resource": "arn:aws:secretsmanager:*:*:secret:project-intelligent-*"
+        },
+        {
+            "Sid": "GlueCatalogProjectAccess",
+            "Effect": "Allow",
+            "Action": [
+                "glue:GetTable",
+                "glue:UpdateTable",
+                "glue:BatchCreatePartition",
+                "glue:GetDatabase"
+            ],
+            "Resource": [
+                "arn:aws:glue:*:*:catalog",
+                "arn:aws:glue:*:*:database/project_intelligent_*",
+                "arn:aws:glue:*:*:table/project_intelligent_*/*"
+            ]
+        }
+    ]
+}
