@@ -47,11 +47,33 @@ project-intelligent/
 ├── notebooks/
 │   ├── exploration/           <- Ad-hoc research notebooks (never imported by src/)
 │   └── reports/               <- Results and backtest report notebooks
-├── infrastructure/
-│   ├── iam/                   <- IAM policy documents (JSON)
-│   ├── cloudwatch/            <- CloudWatch alarm definitions
-│   ├── eventbridge/           <- EventBridge rule definitions
-│   └── s3/                    <- S3 bucket policy and lifecycle rules
+├── infra/
+│   ├── terraform/             <- Terraform root module + child modules
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   ├── backend.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tfvars.example
+│   │   └── modules/
+│   │       ├── iam/
+│   │       ├── s3/
+│   │       ├── dynamodb/
+│   │       ├── ec2/
+│   │       ├── lambda_dispatcher/
+│   │       ├── eventbridge/
+│   │       ├── cloudwatch/
+│   │       ├── secrets_manager/
+│   │       └── glue_catalog/
+│   ├── cloudformation/        <- CloudFormation YAML templates
+│   │   ├── 01-iam.yaml
+│   │   ├── 02-s3.yaml
+│   │   ├── 03-dynamodb.yaml
+│   │   ├── 04-monitoring.yaml
+│   │   └── sam/
+│   │       └── dispatcher.yaml
+│   └── local/                 <- Local dev environment (Docker Compose)
+│       └── docker-compose.yml
 ├── scripts/
 │   ├── setup/                 <- One-time setup scripts (backfill, schema init)
 │   └── ops/                   <- Operational scripts (manual sync, health checks)
@@ -150,11 +172,14 @@ project-intelligent/
 - Report notebooks in `notebooks/reports/` document backtest results and are committed.
 - Exploration notebooks are committed only if they contain useful reference analysis; otherwise they are gitignored.
 
-### `infrastructure/`
-- AWS resource definition files (IAM JSON, CloudWatch alarm JSON, S3 policy JSON).
-- These are reference documents for manual or IaC deployment.
-- Phase 1 uses manual AWS Console or CLI setup guided by these files.
-- Phase 3 may introduce Terraform or CloudFormation; this directory is the input.
+### `infra/`
+- All infrastructure-as-code. No manual console provisioning for persistent resources.
+- `infra/terraform/` is the primary provisioning path. Run `terraform plan` to preview, `terraform apply` to provision.
+- `infra/cloudformation/` covers AWS-native templates (IAM OIDC, SAM Lambda). Deployed via `aws cloudformation deploy`.
+- `infra/local/` holds Docker Compose for local PostgreSQL and any local dev services.
+- `terraform.tfvars` is gitignored. Only `terraform.tfvars.example` is committed.
+- Terraform state is stored remotely in the artifacts S3 bucket under `terraform/state/`.
+- `terraform plan` is run automatically in CI (GitHub Actions) on every PR touching `infra/terraform/`.
 
 ### `scripts/`
 - One-time and operational scripts that are not part of the regular pipeline.

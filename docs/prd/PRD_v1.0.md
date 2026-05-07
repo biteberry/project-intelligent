@@ -283,6 +283,28 @@ Feature groups:
 
 ---
 
+### FR-21 — Infrastructure Provisioning (Terraform + CloudFormation)
+**All AWS infrastructure must be provisioned and managed via Infrastructure-as-Code. No resources are created, modified, or deleted manually in the AWS console after initial account bootstrap.**
+
+- **Primary tool — Terraform:** Manages all core AWS resources end-to-end:
+  - IAM roles, IAM policies, and instance profiles (least-privilege, per-service).
+  - S3 buckets: Bronze, Silver, Gold data lake zones, model artifacts bucket, Terraform state bucket.
+  - DynamoDB tables: predictions store, pipeline audit log, Terraform state lock table.
+  - Lambda functions and EventBridge schedules for all pipeline jobs (J01–J09).
+  - CloudWatch alarms, log groups, and metric filters for observability (FR-19).
+  - AWS Glue Catalog databases and table definitions for Iceberg metadata.
+  - Secrets Manager secrets (all credentials and API keys — NFR-05).
+  - EC2 t2.micro instance for batch compute jobs.
+- **Secondary tool — CloudFormation:** Manages SNS topics and subscriptions for email alerting, and any resources where native CloudFormation support is preferred or Terraform AWS provider coverage is insufficient.
+- Terraform remote state is stored in S3 (`project-intelligent-tf-state` bucket) with DynamoDB state locking (`tf-state-lock` table), versioning enabled, and SSE-S3 encryption.
+- All provisioned resources must carry standard tags: `Project=ProjectIntelligent`, `ManagedBy=Terraform` (or `ManagedBy=CloudFormation`), `Phase=Phase0`.
+- Terraform modules are organised by service domain: `iam`, `s3`, `dynamodb`, `lambda-eventbridge`, `cloudwatch-secrets-glue`, `ec2`.
+- Infrastructure code lives in `infra/terraform/` and `infra/cloudformation/` within the GitHub repository.
+
+**Acceptance Criteria:** `terraform apply` completes with zero errors and provisions all required AWS resources from a clean account state. `terraform plan` run against an already-provisioned environment reports zero drift. CloudFormation stack deploys successfully and SNS email subscription is confirmed.
+
+---
+
 ## 4. Non-Functional Requirements
 
 ### NFR-01 — Cost
@@ -318,6 +340,13 @@ Feature groups:
 ### NFR-07 — Portability
 - All pipeline code must run on both EC2 (primary) and the platform owner's local Windows laptop (failover) without modification to core logic.
 - Only environment configuration (paths, credentials) differs between environments.
+
+### NFR-08 — Infrastructure as Code (IaC)
+- Zero AWS resources are created, modified, or deleted via the AWS console after initial account bootstrap.
+- All infrastructure changes are version-controlled in Git and applied exclusively via `terraform apply` or CloudFormation stack updates.
+- Terraform state must always be stored in the remote S3 backend — local state files are never committed to the repository.
+- Every infrastructure change must be reviewable as a `terraform plan` diff before application.
+- Full environment tear-down and re-provisioning must complete without manual intervention.
 
 ---
 
@@ -380,6 +409,7 @@ The following are explicitly NOT part of Phase 1. They are not gaps — they are
 | A8 | PostgreSQL is already installed on the local laptop (confirmed — ADR-003) |
 | A9 | GitHub repository access is available throughout the project |
 | A10 | The platform owner has no more than 5 concurrent swing positions at any time (position sizing constraint) |
+| A11 | Terraform CLI and AWS CLI are available in the development environment; Terraform version ≥ 1.6 is used throughout |
 
 ---
 
@@ -413,6 +443,8 @@ Phase 1 (Swing Baseline) is complete when all of the following are true:
 - [ ] All 5 prediction serving gates are confirmed operational via test cases.
 - [ ] Local failover drill (per ADR-004) completed successfully within 2 hours.
 - [ ] AWS billing has not exceeded $0.00 at any point during Phase 1 development.
+- [ ] `terraform apply` provisions all AWS resources from a clean state with zero errors; `terraform plan` shows zero drift on an already-provisioned environment.
+- [ ] All AWS resources carry correct `Project`, `ManagedBy`, and `Phase` tags.
 - [ ] Phase 1 exit checklist signed off by platform owner.
 
 ---
@@ -422,3 +454,4 @@ Phase 1 (Swing Baseline) is complete when all of the following are true:
 | Version | Date | Author | Changes |
 | --- | --- | --- | --- |
 | 1.0 | 2026-05-07 | Platform Owner | Initial PRD — created after architecture design phase completion |
+| 1.1 | 2026-05-07 | Platform Owner | Added FR-21 (Terraform + CloudFormation IaC provisioning), NFR-08 (IaC governance), assumption A11, and IaC Definition of Done checklist items |

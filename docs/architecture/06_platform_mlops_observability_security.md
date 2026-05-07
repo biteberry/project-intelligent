@@ -73,11 +73,82 @@ System:
 - On alarm: investigate immediately, reduce usage, or activate local failover.
 - This is the earliest possible signal that free-tier boundaries are at risk.
 
+## Infrastructure-as-Code (IaC) Strategy
+
+### Guiding Principle
+Every AWS resource provisioned for this project must be defined in code —
+either Terraform or CloudFormation — so the environment is reproducible,
+reviewable, and teachable. Manual console clicks are not acceptable for
+persistent resources.
+
+### Tool Split
+
+| Layer | Preferred Tool | Reason |
+| --- | --- | --- |
+| Core AWS infra (S3, DynamoDB, IAM, EC2, EventBridge, Lambda, CloudWatch, SNS, Secrets Manager, Glue) | **Terraform** | Modular, provider-agnostic, strong community modules, excellent for learning |
+| GitHub Actions OIDC trust policy | **Terraform** | Clean IAM resource support |
+| CloudFormation baseline stack | **CloudFormation** | AWS-native; good to understand for AWS certifications and service-linked roles |
+| Lambda deployment packaging | **CloudFormation SAM** | Simplifies Lambda + EventBridge wiring |
+
+### Terraform Module Structure
+
+```
+infra/terraform/
+├── main.tf                  <- Root module: calls all child modules
+├── variables.tf             <- Input variables (region, project prefix, account ID)
+├── outputs.tf               <- Root outputs (bucket names, table ARNs, etc.)
+├── backend.tf               <- S3 backend for remote state
+├── providers.tf             <- AWS provider version pin
+├── terraform.tfvars.example <- Safe example values (no secrets)
+└── modules/
+    ├── iam/                 <- IAM roles and policies
+    ├── s3/                  <- All 5 S3 buckets + encryption + lifecycle
+    ├── dynamodb/            <- predictions + audit tables
+    ├── ec2/                 <- t2.micro instance + SSM profile
+    ├── lambda_dispatcher/   <- Lambda SSM dispatcher function
+    ├── eventbridge/         <- Daily + weekly schedule rules
+    ├── cloudwatch/          <- Billing alarm + SNS + operational alarms
+    ├── secrets_manager/     <- Secret placeholders (values set separately)
+    └── glue_catalog/        <- Glue databases for bronze/silver/gold
+```
+
+### CloudFormation Template Structure
+
+```
+infra/cloudformation/
+├── 01-iam.yaml              <- IAM roles (GitHub Actions OIDC + service roles)
+├── 02-s3.yaml               <- S3 buckets baseline
+├── 03-dynamodb.yaml         <- DynamoDB tables
+├── 04-monitoring.yaml       <- CloudWatch + SNS
+└── sam/
+    └── dispatcher.yaml      <- SAM template for Lambda + EventBridge
+```
+
+### IaC Conventions
+
+- All resource names use the prefix `project-intelligent-` for easy identification.
+- Resource ARNs and names are exported as Terraform outputs / CloudFormation exports for cross-module reference.
+- No hardcoded AWS account IDs — use `data.aws_caller_identity.current.account_id`.
+- Terraform state stored in `project-intelligent-artifacts-<account_id>` S3 bucket under `terraform/state/`.
+- `terraform plan` is run in CI (GitHub Actions) on every PR; `terraform apply` is manual with approval.
+- CloudFormation templates are linted with `cfn-lint` in CI.
+- `terraform.tfvars` and `.env` files are gitignored; only `.example` files are committed.
+
+### Phase Rollout for IaC
+
+| Phase | IaC Action |
+| --- | --- |
+| Phase 0 | Terraform modules written and `terraform plan` verified for all infra |
+| Phase 0 | CloudFormation IAM + SAM dispatcher templates written |
+| Phase 0 | `terraform apply` provisions the actual AWS environment |
+| Phase 1+ | All new infra additions go through IaC first — no ad-hoc console creation |
+
 ## Security and Governance
-- Least-privilege IAM
-- Secret management through managed store
-- Data retention and lifecycle policies
+- Least-privilege IAM (defined and reviewed in Terraform/CloudFormation — no console-only policies)
+- Secret management through AWS Secrets Manager (referenced in IaC; values injected separately)
+- Data retention and lifecycle policies (defined in Terraform S3 module)
 - Auditability through centralized logs
+- IaC drift detection: `terraform plan` in CI will catch any manual console changes
 
 ---
 

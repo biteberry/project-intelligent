@@ -4,6 +4,10 @@
 - Finalize data contracts and labels.
 - Finalize cap-tier and horizon dictionaries.
 - Finalize pre-landing universe rules.
+- Write Terraform modules for all AWS resources (IAM, S3, DynamoDB, EC2, Lambda, EventBridge, CloudWatch, Secrets Manager, Glue Catalog).
+- Write CloudFormation templates for IAM OIDC role and SAM Lambda dispatcher.
+- Run `terraform plan` to validate all modules before any `terraform apply`.
+- Provision the full environment via `terraform apply` — no manual console clicks for persistent resources.
 
 ## Phase 1 - Swing Baseline
 - Build swing feature and label architecture.
