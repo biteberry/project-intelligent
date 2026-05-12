@@ -1,3 +1,17 @@
+# Implementation Status: Issues 66, 67, 68
+
+**Issue 66 — DynamoDB Schema Documentation:**
+- Schemas for both predictions and audit tables are fully documented in:
+  - docs/schemas/dynamodb_predictions.md
+  - docs/schemas/dynamodb_audit.md
+
+**Issue 67 — Predictions Table Creation:**
+- The predictions table was created as per schema and validated using AWS CLI.
+
+**Issue 68 — Audit Table Creation:**
+- The audit table was created, schema documented, and validated.
+
+All three issues are implemented and documented. See the above sections and referenced schema files for details.
 # Issue #46 — DynamoDB Table Creation Guide (predictions + audit)
 
 **Repo:** biteberry/project-intelligent  
@@ -119,21 +133,44 @@ Add these actions to your EC2/Lambda role policy for both tables:
 
 ## Step 7 — Test Table Access (Optional)
 
-Insert a test item:
+
+### PowerShell Note: Use file:// for JSON input
+
+PowerShell strips double quotes from inline JSON. To avoid errors, save your item/key to a file and use `file://` syntax.
+
+**Insert a test item:**
 
 ```powershell
+@'
+{
+  "symbol#date": {"S": "RELIANCE#2026-05-07"},
+  "horizon#model_version": {"S": "swing#v1.2"},
+  "predicted_direction": {"S": "UP"},
+  "confidence_score": {"N": "0.87"},
+  "features_hash": {"S": "9f8a7c..."},
+  "ttl": {"N": "1788888888"}
+}
+'@ | Out-File -FilePath "$env:TEMP\item.json" -Encoding ASCII
+
 aws dynamodb put-item `
   --table-name $predictionsTable `
-  --item '{"symbol#date": {"S": "RELIANCE#2026-05-07"}, "horizon#model_version": {"S": "swing#v1.2"}, "predicted_direction": {"S": "UP"}, "confidence_score": {"N": "0.87"}, "features_hash": {"S": "9f8a7c..."}, "ttl": {"N": "1788888888"}}' `
+  --item file://$env:TEMP/item.json `
   --region $region
 ```
 
-Query the item:
+**Query the item:**
 
 ```powershell
+@'
+{
+  "symbol#date": {"S": "RELIANCE#2026-05-07"},
+  "horizon#model_version": {"S": "swing#v1.2"}
+}
+'@ | Out-File -FilePath "$env:TEMP\key.json" -Encoding ASCII
+
 aws dynamodb get-item `
   --table-name $predictionsTable `
-  --key '{"symbol#date": {"S": "RELIANCE#2026-05-07"}, "horizon#model_version": {"S": "swing#v1.2"}}' `
+  --key file://$env:TEMP/key.json `
   --region $region
 ```
 
