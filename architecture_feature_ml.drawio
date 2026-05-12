@@ -1,0 +1,111 @@
+<mxfile host="app.diagrams.net"><diagram name="Feature Engineering and ML Pipeline" id="1">
+  <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1000" math="0" shadow="1">
+    <root>
+      <mxCell id="0"/>
+      <mxCell id="1" parent="0"/>
+
+      <!-- Title -->
+      <mxCell id="title" value="Feature Engineering &amp; ML Pipeline — PROJECT INTELLIGENT" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=16;fontColor=#1A237E;" vertex="1" parent="1">
+        <mxGeometry x="40" y="20" width="800" height="40" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== INPUT ===== -->
+      <mxCell id="lbl_in" value="Input" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#546E7A;" vertex="1" parent="1">
+        <mxGeometry x="40" y="75" width="160" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="silver" value="🪣 Silver Layer (Iceberg)&#xa;s3://project-intelligent-silver/&#xa;&#xa;• Cleaned, deduplicated&#xa;• Adjusted prices&#xa;• market_context field&#xa;• cap_tier enriched" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#546E7A;fontColor=#37474F;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxGeometry x="40" y="100" width="165" height="150" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== FEATURE ENGINEERING ===== -->
+      <mxCell id="lbl_feat" value="Feature Engineering (AWS Glue / Lambda)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#2E7D32;" vertex="1" parent="1">
+        <mxGeometry x="240" y="75" width="300" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="fg1" value="Group 1-2&#xa;Price Returns&#xa;Rolling Statistics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="240" y="100" width="140" height="60" as="geometry"/>
+      </mxCell>
+      <mxCell id="fg3" value="Group 3&#xa;Technical Indicators&#xa;RSI, MACD, Bollinger, ATR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="240" y="175" width="140" height="60" as="geometry"/>
+      </mxCell>
+      <mxCell id="fg4" value="Group 4&#xa;Volume Behaviour&#xa;OBV, A/D, MFI, Delivery %" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="395" y="100" width="140" height="60" as="geometry"/>
+      </mxCell>
+      <mxCell id="fg5" value="Group 5-6&#xa;Volatility + Regime&#xa;Realized Vol, GK, VIX" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="395" y="175" width="140" height="60" as="geometry"/>
+      </mxCell>
+      <mxCell id="fg7" value="Group 7&#xa;Calendar + Events&#xa;Earnings, Macro, Corp Actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="240" y="250" width="140" height="60" as="geometry"/>
+      </mxCell>
+      <mxCell id="fg8" value="Group 8-10&#xa;Candlestick, Institutional&#xa;India Regulatory Risk" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="395" y="250" width="140" height="60" as="geometry"/>
+      </mxCell>
+      <mxCell id="bias_audit" value="🔍 Look-ahead Bias Audit&#xa;Zero violations gate&#xa;Blocks Gold write on fail" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontColor=#C62828;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="320" y="330" width="170" height="55" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== GOLD ===== -->
+      <mxCell id="lbl_gold" value="Gold Layer" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#E65100;" vertex="1" parent="1">
+        <mxGeometry x="580" y="75" width="160" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="gold" value="🪣 Gold Layer (Iceberg)&#xa;s3://project-intelligent-gold/&#xa;&#xa;• All 10 feature groups&#xa;• label_direction_1d&#xa;• Snapshot-versioned&#xa;• G3 gate enforced&#xa;• ≥95% completeness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;fontColor=#E65100;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxGeometry x="580" y="100" width="165" height="160" as="geometry"/>
+      </mxCell>
+      <mxCell id="regime" value="🌐 Market Regime&#xa;bull_trend / bear_trend&#xa;sideways / high_vol&#xa;3-day stability buffer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;fontColor=#E65100;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="580" y="280" width="165" height="65" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== ML TRAINING ===== -->
+      <mxCell id="lbl_ml" value="ML Training" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#4527A0;" vertex="1" parent="1">
+        <mxGeometry x="780" y="75" width="170" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="ml" value="🤖 Amazon SageMaker&#xa;&#xa;• XGBoost / LightGBM&#xa;• Walk-forward CV only&#xa;• Corp action row exclusion&#xa;• OOS directional accuracy&#xa;• ≥55% accuracy to qualify&#xa;• MLflow / SQLite tracker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#4527A0;fontColor=#4527A0;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxGeometry x="780" y="100" width="170" height="190" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== MODEL REGISTRY ===== -->
+      <mxCell id="lbl_reg" value="Model Registry" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#283593;" vertex="1" parent="1">
+        <mxGeometry x="985" y="75" width="170" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="model_reg" value="📦 Model Registry&#xa;S3: artifacts/ prefix&#xa;&#xa;• Model artifact (.pkl/.cbm)&#xa;• feature_version&#xa;• Gold snapshot_id&#xa;• training_date&#xa;• Promotion gate: ≥2% accuracy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#283593;fontColor=#283593;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxGeometry x="985" y="100" width="170" height="175" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== MODEL SERVING ===== -->
+      <mxCell id="lbl_serve" value="Inference &amp; Serving" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#880E4F;" vertex="1" parent="1">
+        <mxGeometry x="1190" y="75" width="180" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="serving" value="🚀 SageMaker Endpoint&#xa;Batch Inference (daily J08)&#xa;&#xa;5 Serving Gates:&#xa;• Earnings blackout&#xa;• Circuit breaker (NSE)&#xa;• Macro event blackout&#xa;• Confidence threshold&#xa;• Staleness (30d)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#880E4F;fontColor=#880E4F;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxGeometry x="1190" y="100" width="175" height="190" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== MONITORING ===== -->
+      <mxCell id="lbl_mon" value="Monitoring" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=10;fontColor=#00695C;" vertex="1" parent="1">
+        <mxGeometry x="1400" y="75" width="160" height="20" as="geometry"/>
+      </mxCell>
+      <mxCell id="cw" value="📊 Amazon CloudWatch&#xa;&#xa;• Model drift alerts&#xa;• Prediction accuracy&#xa;• Pipeline latency&#xa;• IAM access failures&#xa;• Data freshness lag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00695C;fontColor=#00695C;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+        <mxGeometry x="1400" y="100" width="165" height="160" as="geometry"/>
+      </mxCell>
+      <mxCell id="dynamo" value="🗄️ DynamoDB&#xa;Audit + Prediction Store&#xa;snapshot_id per run" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontColor=#E65100;fontSize=10;" vertex="1" parent="1">
+        <mxGeometry x="1400" y="285" width="165" height="65" as="geometry"/>
+      </mxCell>
+
+      <!-- ===== ARROWS ===== -->
+      <mxCell id="a1" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#546E7A;strokeWidth=2;" edge="1" parent="1" source="silver" target="fg1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a2" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#546E7A;strokeWidth=2;" edge="1" parent="1" source="silver" target="fg3"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a3" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#546E7A;strokeWidth=2;" edge="1" parent="1" source="silver" target="fg4"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a4" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#546E7A;strokeWidth=2;" edge="1" parent="1" source="silver" target="fg5"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a5" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#546E7A;strokeWidth=2;" edge="1" parent="1" source="silver" target="fg7"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#546E7A;strokeWidth=2;" edge="1" parent="1" source="silver" target="fg8"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a7" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#2E7D32;strokeWidth=2;" edge="1" parent="1" source="fg1" target="gold"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#2E7D32;strokeWidth=2;" edge="1" parent="1" source="fg8" target="gold"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a9" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#C62828;" edge="1" parent="1" source="bias_audit" target="gold"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#F9A825;strokeWidth=2;" edge="1" parent="1" source="gold" target="ml"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a11" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#4527A0;strokeWidth=2;" edge="1" parent="1" source="ml" target="model_reg"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#283593;strokeWidth=2;" edge="1" parent="1" source="model_reg" target="serving"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a13" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#880E4F;strokeWidth=2;" edge="1" parent="1" source="serving" target="cw"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#E65100;dashed=1;" edge="1" parent="1" source="serving" target="dynamo"><mxGeometry relative="1" as="geometry"/></mxCell>
+      <mxCell id="a15" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;html=1;strokeColor=#F9A825;dashed=1;" edge="1" parent="1" source="regime" target="ml"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    </root>
+  </mxGraphModel>
+</diagram></mxfile>

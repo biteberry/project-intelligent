@@ -1,14 +1,71 @@
 # 03 Data Architecture - Medallion
 
 ## Principle
-Use bronze, silver, and gold zones to separate raw ingestion, conformed data, and analytics/ML-ready assets.
+Use landing, bronze, silver, and gold zones to separate raw unprocessed data, validated ingestion snapshots, conformed data, and analytics/ML-ready assets.
 
 ## Table Format Decision
+- Landing: raw files (JSON, CSV, Parquet as-received) on S3. Write-once, never modified. Object Lock COMPLIANCE mode.
 - Bronze: plain Parquet on S3. Append-only, immutable via IAM object lock.
 - Silver: Apache Iceberg on S3 via PyIceberg + DuckDB + AWS Glue Catalog.
 - Gold: Apache Iceberg on S3 via PyIceberg + DuckDB + AWS Glue Catalog.
 
 Iceberg gives Silver and Gold storage-enforced immutability, native time travel for point-in-time backtest queries, schema evolution as features grow, and snapshot ID references for reproducible model training. See ADR-002 for the full decision record.
+
+---
+
+## Landing
+
+- First point of arrival for all external data — raw, unmodified, exactly as received from source.
+- S3 bucket: `s3://project-intelligent-landing/`
+- Partitioning: `source=<source_name>/date=<YYYY-MM-DD>/`
+- Format: files stored as-received (JSON, CSV, or raw Parquet from yfinance / NSE / FRED / Finnhub).
+- **Object Lock: COMPLIANCE mode** — write-once, cannot be deleted or modified by any principal including root, for the full retention period.
+- **S3 Lifecycle Policy:** transition to S3 Glacier after 90 days to minimise storage cost. Retain for minimum 1 year for audit and reprocessing.
+- No transformation, validation, or schema enforcement at this stage.
+- The Landing layer is the single source of truth for reprocessing: if any downstream layer (Bronze, Silver, Gold) has an issue, the pipeline can always re-read from Landing without contacting the original external source.
+
+### Landing Immutability Rules
+- No pipeline job has PutObject-overwrite or DeleteObject rights on the Landing bucket.
+- Only the fetcher Lambda/Glue identity has PutObject rights (new objects only).
+- Human IAM identities have read-only access.
+- Any re-fetch from an external source creates a new dated partition, never overwrites an existing one.
+
+### Landing S3 Partition Structure
+```
+s3://project-intelligent-landing/
+  source=yfinance/
+    date=2026-05-07/
+      RELIANCE.NS_ohlcv.json
+      AAPL_ohlcv.json
+  source=nse_bhav_copy/
+    date=2026-05-07/
+      bhav_copy_20260507.csv
+  source=rbi_macro/
+    date=2026-05-07/
+      rbi_rates.json
+  source=fred_macro/
+    date=2026-05-07/
+      fred_series.json
+  source=finnhub_sentiment/
+    date=2026-05-07/
+      sentiment.json
+  source=nse_board_meetings/
+    date=2026-05-07/
+      board_meetings.json
+```
+
+### Quality Gate: Landing to Bronze (G0)
+- **G0** is the Landing → Bronze gate, executed by the Ingestion ETL job.
+- Checks applied before any record is written to Bronze:
+  - Mandatory fields present (symbol, date, open, high, low, close, volume).
+  - No negative prices or volumes.
+  - No future-dated records (beyond today + 1 business day tolerance).
+  - Symbol exists in the approved universe list.
+  - Missing-field ratio ≤ 5% per batch; breach halts pipeline.
+  - Duplicate detection on symbol + date; duplicates logged and rejected.
+- Records failing G0 are written to a quarantine prefix in Landing: `s3://project-intelligent-landing/quarantine/date=<date>/` for investigation, never to Bronze.
+
+---
 
 ## Immutability Mandate (All Layers)
 Every layer in the medallion architecture is strictly immutable.
@@ -66,6 +123,7 @@ Every layer in the medallion architecture is strictly immutable.
 ---
 
 ## Quality Gates
+- Landing to Bronze: G0 — schema, mandatory fields, dedup, universe membership.
 - Bronze to silver: schema and freshness checks.
 - Silver to gold: completeness and feature readiness checks.
 - Failed gates stop promotion to next layer.
@@ -77,6 +135,7 @@ Every layer in the medallion architecture is strictly immutable.
 
 | Layer | Pipeline Write | Human Write | Human Read | Delete Allowed |
 | --- | --- | --- | --- | --- |
+| Landing | Fetcher Lambda only (PutObject new) | Denied | Allowed | Never |
 | Bronze | Allowed (scoped job identity) | Denied | Allowed | Never |
 | Silver | Allowed (scoped job identity) | Denied | Allowed | Never |
 | Gold | Allowed (scoped job identity) | Denied | Allowed | Never |
@@ -94,7 +153,17 @@ Every layer in the medallion architecture is strictly immutable.
 
 ## Guardrails
 
-### G1 - Ingestion Guardrails (Bronze Entry)
+### G0 - Ingestion Guardrails (Landing to Bronze)
+- Reject any payload where mandatory fields are missing (symbol, date, open, high, low, close, volume).
+- Reject records with negative price or negative volume.
+- Reject records where high < low.
+- Reject records with a future date beyond today plus one business day tolerance.
+- Reject entire batch if symbol not found in the approved universe list.
+- Maximum allowed missing-field ratio per batch is 5%; breach triggers pipeline halt and alert.
+- Duplicate detection on symbol + date combination; duplicates are rejected with a logged warning, never silently dropped.
+- Failed records are written to `s3://project-intelligent-landing/quarantine/` — never to Bronze.
+
+### G1 - Ingestion Guardrails (Bronze Entry Confirmation)
 - Reject any payload where mandatory fields are missing (symbol, date, open, high, low, close, volume).
 - Reject records with negative price or negative volume.
 - Reject records where high < low.
@@ -136,8 +205,10 @@ Every layer in the medallion architecture is strictly immutable.
 ### G6 - Guardrail Breach Response
 | Guardrail | Breach Action |
 | --- | --- |
-| Missing mandatory field | Reject batch, alert, log |
-| Duplicate record | Reject record, warn, log |
+| Landing: missing mandatory field | Quarantine record, alert, log |
+| Landing: duplicate record | Quarantine record, warn, log |
+| Missing mandatory field (Bronze) | Reject batch, alert, log |
+| Duplicate record (Bronze) | Reject record, warn, log |
 | Schema mismatch | Halt promotion, alert |
 | Freshness lag breach | Halt promotion, alert |
 | Look-ahead bias detected | Halt gold build, alert |

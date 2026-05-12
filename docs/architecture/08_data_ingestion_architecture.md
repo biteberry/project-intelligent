@@ -1,7 +1,27 @@
 # 08 Data Ingestion Architecture
 
 ## Purpose
-Define how raw market and macro data enters the Bronze layer, covering source selection, historical backfill design, incremental daily ingestion, adjusted price policy, deduplication, and failure handling.
+Define how raw market and macro data enters the data platform, covering the Landing layer (first point of arrival), source selection, historical backfill design, incremental daily ingestion, adjusted price policy, deduplication, and failure handling.
+
+---
+
+## Ingestion Flow Overview
+
+```
+External Sources → [Lambda/Glue Fetcher] → Landing Layer (S3, raw)
+                                                  ↓
+                                         [Ingestion ETL, G0 gate]
+                                                  ↓
+                                         Bronze Layer (S3, Parquet)
+                                                  ↓
+                                         Silver Layer (S3, Iceberg)
+                                                  ↓
+                                         Gold Layer (S3, Iceberg)
+```
+
+- **Landing Layer** (`s3://project-intelligent-landing/`) — raw, unmodified files as received from each source. Write-once, Object Lock COMPLIANCE. No transformation applied.
+- **Bronze Layer** — validated, partitioned Parquet snapshots. Only records passing the G0 quality gate are written here.
+- See `03_data_architecture_medallion.md` for full Landing and Bronze layer specification.
 
 ---
 
@@ -97,8 +117,13 @@ For the current Phase 1 scope (US-listed stocks via yfinance), `institutional_ow
 - Triggered by job J01 (universe selection) to ensure fresh fundamentals are available before scoring.
 - Incremental check: if a symbol's earnings date has passed since the last fetch, a targeted re-fetch is triggered.
 
-### Fundamental Data Partition in Bronze
+### Fundamental Data Partition in Landing and Bronze
 ```
+s3://project-intelligent-landing/
+  source=yfinance/
+    date=2026-04-15/
+      AAPL_fundamentals.json       ← raw API response, untouched
+
 s3://project-intelligent-bronze/
   fundamentals/
     source=yfinance/
@@ -164,8 +189,13 @@ This endpoint is publicly accessible (no login required) and provides:
 | fetch_date | date | Date this record was pulled by the pipeline |
 | ingestion_run_id | string | Pipeline run ID for traceability |
 
-### Earnings Calendar Bronze Partition Design
+### Earnings Calendar Landing and Bronze Partition Design
 ```
+s3://project-intelligent-landing/
+  source=nse_board_meetings/
+    date=2026-05-04/
+      board_meetings_20260504.json  ← raw NSE API/scrape response
+
 s3://project-intelligent-bronze/
   earnings_calendar/
     market_context=india/
