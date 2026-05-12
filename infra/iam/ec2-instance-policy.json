@@ -31,7 +31,10 @@
                 "dynamodb:PutItem",
                 "dynamodb:Query"
             ],
-            "Resource": "arn:aws:dynamodb:*:*:table/project-intelligent-*"
+            "Resource": [
+                "arn:aws:dynamodb:ap-south-1:307828758318:table/project-intelligent-predictions",
+                "arn:aws:dynamodb:ap-south-1:307828758318:table/project-intelligent-audit"
+            ]
         },
         {
             "Sid": "SSMSessionManagerCore",
