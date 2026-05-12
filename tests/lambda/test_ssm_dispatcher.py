@@ -101,7 +101,7 @@ def test_daily_event_type_detected_in_parameters(mock_ssm):
     handler.lambda_handler({"detail-type": "Scheduled Event - Daily"}, MagicMock())
 
     call_kwargs = mock_ssm.send_command.call_args[1]
-    assert call_kwargs["Parameters"]["event_type"] == ["daily"]
+    assert call_kwargs["Parameters"]["eventType"] == ["daily"]
 
 
 @patch('handler.ssm')
@@ -113,7 +113,7 @@ def test_weekly_event_type_detected_in_parameters(mock_ssm):
     handler.lambda_handler({"detail-type": "Scheduled Event - Weekly"}, MagicMock())
 
     call_kwargs = mock_ssm.send_command.call_args[1]
-    assert call_kwargs["Parameters"]["event_type"] == ["weekly"]
+    assert call_kwargs["Parameters"]["eventType"] == ["weekly"]
 
 
 @patch('handler.ssm')
@@ -125,7 +125,7 @@ def test_unknown_event_type_fallback(mock_ssm):
     handler.lambda_handler({"source": "aws.events"}, MagicMock())  # no detail-type
 
     call_kwargs = mock_ssm.send_command.call_args[1]
-    assert call_kwargs["Parameters"]["event_type"] == ["unknown"]
+    assert call_kwargs["Parameters"]["eventType"] == ["unknown"]
 
 
 # ---------------------------------------------------------------------------

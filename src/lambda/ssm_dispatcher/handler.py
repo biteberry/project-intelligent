@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     # 3. Prepare SSM RunCommand parameters
     # You can customize parameters as needed for your pipeline
     command_parameters = {
-        'event_type': [event_type]
+        'eventType': [event_type]
     }
 
     try:
