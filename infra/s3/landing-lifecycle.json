@@ -1,14 +1,17 @@
 {
     "Rules": [
         {
-            "ID": "ExpireRawFilesAfter30Days",
+            "ID": "GlacierTransitionAfter90Days",
             "Filter": {
                 "Prefix": ""
             },
             "Status": "Enabled",
-            "Expiration": {
-                "Days": 30
-            }
+            "Transitions": [
+                {
+                    "Days": 90,
+                    "StorageClass": "GLACIER"
+                }
+            ]
         }
     ]
 }
