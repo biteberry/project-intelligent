@@ -49,7 +49,7 @@ Each requirement is numbered, uniquely identified, and testable. Every requireme
 - Must store both unadjusted OHLCV (for audit) and adjusted close (for calculations).
 - Must retry failed symbol fetches up to 3 times before skipping and alerting.
 
-**Acceptance Criteria:** On any given trading day, ≥95% of active universe symbols have a new OHLCV record in Bronze by 23:59 UTC.
+**Acceptance Criteria:** On any given trading day, ≥95% of active universe symbols have a new OHLCV record written to the Landing layer and promoted to Bronze by 23:59 UTC.
 
 ---
 
@@ -248,7 +248,7 @@ Feature groups:
 ### FR-18 — Local Backup and Failover
 **The system must maintain a daily-synchronized local copy of all critical data on the platform owner's laptop.**
 
-- Sync covers: S3 Bronze/Silver/Gold snapshots, DynamoDB predictions and audit exports, model artifacts, SQLite experiment metadata.
+- Sync covers: S3 Landing/Bronze/Silver/Gold snapshots, DynamoDB predictions and audit exports, model artifacts, SQLite experiment metadata.
 - Local PostgreSQL mirrors DynamoDB schema for predictions and pipeline audit.
 - In the event of AWS account issues, the full pipeline must be runnable locally within 2 hours of failover activation.
 
@@ -288,7 +288,7 @@ Feature groups:
 
 - **Primary tool — Terraform:** Manages all core AWS resources end-to-end:
   - IAM roles, IAM policies, and instance profiles (least-privilege, per-service).
-  - S3 buckets: Bronze, Silver, Gold data lake zones, model artifacts bucket, Terraform state bucket.
+  - S3 buckets: Landing, Bronze, Silver, Gold data lake zones, model artifacts bucket, Terraform state bucket.
   - DynamoDB tables: predictions store, pipeline audit log, Terraform state lock table.
   - Lambda functions and EventBridge schedules for all pipeline jobs (J01–J09).
   - CloudWatch alarms, log groups, and metric filters for observability (FR-19).

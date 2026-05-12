@@ -19,14 +19,14 @@ These steps run without any human involvement every trading day. They are trigge
 
 | Step | What Happens | Output |
 | --- | --- | --- |
-| **1. Market data ingestion (J02)** | EC2 pulls OHLCV for all universe symbols from yfinance. NSE bhav copy CSV (delivery %) downloaded from NSE archives. | Bronze OHLCV + delivery parquet files in S3 |
+| **1. Market data ingestion (J02)** | EC2 pulls OHLCV for all universe symbols from yfinance. NSE bhav copy CSV (delivery %) downloaded from NSE archives. Raw files written to Landing layer (S3, Object Lock). G0 quality gate runs; passing records promoted to Bronze. | Landing raw files → Bronze OHLCV + delivery parquet files in S3 |
 | **2. Earnings calendar check** | NSE board meeting dates checked against today's date. `days_to_next_earnings` updated for all symbols. | Silver calendar join ready |
 | **3. Corporate action flag** | yfinance actions table checked. Any symbol with an ex-date today gets `corporate_action_flag = 1`. | Rows flagged for training exclusion |
 | **4. Bronze → Silver promotion (J04)** | Cleaning, deduplication, adjusted price enforcement, all Silver joins applied (calendar, corporate actions, regime, macro). | Silver Iceberg snapshot in S3 |
 | **5. Silver → Gold feature engineering (J05)** | All 10 feature groups computed for every symbol: price returns, rolling stats, technicals (RSI, MACD, ATR, Bollinger, SMA, 52-week, RS, support/resistance), volume (OBV, A/D, MFI, delivery %), volatility, regime (Nifty 50 + India VIX), calendar + earnings events, candlestick patterns, institutional positioning, India regulatory risk (promoter pledging, circuit breaker flags). | Gold Iceberg snapshot in S3 |
 | **6. Prediction gate checks** | Automatically applied before predictions are served — no human action: Earnings blackout (result in ≤2 days → suppressed), Circuit breaker gate (upper/lower circuit hit → suppressed), Macro event gate (RBI/Budget within 2 days → suppressed for rate-sensitive sectors), Confidence floor gate (model confidence below threshold → suppressed). | Suppression flags logged in DynamoDB |
 | **7. Batch inference (J07)** | ML model reads Gold snapshot. Generates 1-day direction prediction + confidence for each non-suppressed symbol. | Predictions written to DynamoDB |
-| **8. Local sync (J08)** | DynamoDB predictions + audit records synced to local PostgreSQL on laptop. S3 bronze/silver/gold synced to local disk mirror. | Local backup current |
+| **8. Local sync (J08)** | DynamoDB predictions + audit records synced to local PostgreSQL on laptop. S3 landing/bronze/silver/gold synced to local disk mirror. | Local backup current |
 | **9. Monitoring and alerts** | CloudWatch checks: billing alarm ($0.10 threshold), DynamoDB RCU/WCU usage, S3 storage (5 GB limit), job failure status. SNS email sent on any breach. | SNS alert email to you if any threshold hit |
 
 **If any step fails:** The chain stops. Downstream steps do not run. A CloudWatch alert is raised. The failed step is retried automatically on the next daily run. No manual restart needed unless the failure is structural.
@@ -41,9 +41,9 @@ These steps run every Sunday without human involvement.
 | --- | --- | --- | --- |
 | **Universe scoring (J01)** | 14:00 | All active symbols re-scored on the composite (fundamental + technical + quant + sentiment + risk penalty). Rankings updated. Cap-tier quotas enforced. | Universe snapshot in S3, DynamoDB audit |
 | **Opportunity scanner** | 14:00 (part of J01) | ~700 NSE symbols scanned for volume/price anomalies (volume >5×, price move >5%, 52-week high breach). Manipulation risk score computed for flagged symbols. | Scanner watchlist JSON in S3 |
-| **Macro data ingestion (J03)** | 15:00 | RBI repo rate, India 10Y/2Y bond yields, India CPI updated. India VIX and Nifty 50 weekly series updated. NSE board meeting calendar refreshed. Corporate actions calendar refreshed. | Bronze macro parquet files in S3 |
+| **Macro data ingestion (J03)** | 15:00 | RBI repo rate, India 10Y/2Y bond yields, India CPI updated. India VIX and Nifty 50 weekly series updated. NSE board meeting calendar refreshed. Corporate actions calendar refreshed. Raw responses written to Landing layer first; G0 gate applied before Bronze promotion. | Landing raw files → Bronze macro parquet files in S3 |
 | **Model training (J06)** | 16:00 | Weekly training run on latest Gold snapshot. New model compared to current live model. Promoted automatically only if directional accuracy improves by ≥2 percentage points on out-of-sample data. | New model artifact in S3 (if promoted), training report in DynamoDB |
-| **New symbol backfill (J09)** | After J01 if new symbols | If J01 adds new symbols to universe, targeted 252-day backfill runs for those symbols before Monday's daily pipeline. | Bronze backfill parquet in S3 |
+| **New symbol backfill (J09)** | After J01 if new symbols | If J01 adds new symbols to universe, targeted 252-day backfill runs for those symbols before Monday's daily pipeline. Historical raw data written to Landing layer; G0 gate applied before Bronze promotion. | Landing raw files → Bronze backfill parquet in S3 |
 
 ---
 
