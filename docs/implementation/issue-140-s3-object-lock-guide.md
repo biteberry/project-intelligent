@@ -110,15 +110,29 @@ aws s3 rm s3://$landingBucket --recursive
 
 S3 requires a bucket to be **completely empty** (including all object versions and delete markers) before it can be deleted.
 
-### 2a. Remove all object versions and delete markers
+### 2a. Check for object versions
+
+First check whether any versions exist — PowerShell does **not** support bash-style `$(...)` subcommands inside strings, so we split this into two steps.
 
 ```powershell
-aws s3api delete-objects `
-  --bucket $landingBucket `
-  --delete "$(aws s3api list-object-versions --bucket $landingBucket --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json)"
+aws s3api list-object-versions --bucket $landingBucket
 ```
 
-> If the command returns `"Deleted": []` or the list is empty, the bucket is already clean.
+- **If output shows `"Versions": null` or is empty** → no versions to clean up. Skip to Step 2b.
+- **If versions are listed** → save the output to a file and use `file://` to pass it to `delete-objects`:
+
+```powershell
+# Save version list to a temp file
+aws s3api list-object-versions `
+  --bucket $landingBucket `
+  --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' `
+  --output json | Out-File -FilePath "$env:TEMP\versions.json" -Encoding ASCII
+
+# Delete using the file
+aws s3api delete-objects --bucket $landingBucket --delete file://$env:TEMP/versions.json
+```
+
+> **Why `file://`?** PowerShell strips double quotes from JSON when passing inline strings to external programs like `aws`. Using a file avoids all quoting issues — the same pattern used for `encryption-config.json` throughout this project.
 
 ### 2b. Delete the bucket
 
@@ -206,18 +220,30 @@ No output = success.
 
 This is the core of this issue. Set COMPLIANCE mode with a 365-day retention period as the **default** for every new object uploaded.
 
+> **PowerShell JSON issue:** Passing multi-line JSON inline to `aws` CLI in PowerShell causes quote-stripping errors. Always use a `file://` approach.
+
+**Step 5a — Create the JSON file:**
+
+```powershell
+@'
+{
+    "ObjectLockEnabled": "Enabled",
+    "Rule": {
+        "DefaultRetention": {
+            "Mode": "COMPLIANCE",
+            "Days": 365
+        }
+    }
+}
+'@ | Out-File -FilePath "$env:TEMP\object-lock.json" -Encoding ASCII
+```
+
+**Step 5b — Apply using the file:**
+
 ```powershell
 aws s3api put-object-lock-configuration `
   --bucket $landingBucket `
-  --object-lock-configuration '{
-    "ObjectLockEnabled": "Enabled",
-    "Rule": {
-      "DefaultRetention": {
-        "Mode": "COMPLIANCE",
-        "Days": 365
-      }
-    }
-  }'
+  --object-lock-configuration file://$env:TEMP/object-lock.json
 ```
 
 No output = success.
@@ -350,13 +376,54 @@ After your edit, the `Statement` array should look like this:
 
 ### Apply the updated policy to AWS
 
-After saving the file, apply it to AWS. First, find your IAM policy ARN:
+**First, check whether the policy already exists in AWS:**
 
 ```powershell
 aws iam list-policies --scope Local --query "Policies[?PolicyName=='ec2-instance-policy'].Arn" --output text
 ```
 
-Then create a new version of the policy (replace `<POLICY_ARN>` with the ARN from the above command):
+---
+
+**Case A — No output (policy does not exist in AWS yet):**
+
+The JSON file is only local. Create the policy in AWS for the first time:
+
+```powershell
+aws iam create-policy `
+  --policy-name ec2-instance-policy `
+  --policy-document file://C:\Manivannan\Workspace\ANTIGRAVITY\STOCKS\PROJECT_INTELLIGENT\infra\iam\ec2-instance-policy.json
+```
+
+Expected output includes the policy ARN:
+```json
+{
+    "Policy": {
+        "PolicyName": "ec2-instance-policy",
+        "Arn": "arn:aws:iam::307828758318:policy/ec2-instance-policy",
+        ...
+    }
+}
+```
+
+Then attach it to the EC2 role:
+
+```powershell
+aws iam attach-role-policy `
+  --role-name project-intelligent-ec2-role `
+  --policy-arn arn:aws:iam::307828758318:policy/ec2-instance-policy
+```
+
+Verify it is attached:
+
+```powershell
+aws iam list-attached-role-policies --role-name project-intelligent-ec2-role
+```
+
+---
+
+**Case B — ARN is returned (policy already exists in AWS):**
+
+Create a new version of the policy (replace `<POLICY_ARN>` with the ARN from the list command):
 
 ```powershell
 aws iam create-policy-version `
