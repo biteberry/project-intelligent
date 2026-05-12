@@ -438,42 +438,63 @@ aws iam create-policy-version `
 
 ## Step 8 — Test: Attempt to Delete a Test Object (Must Be Denied)
 
-This is your acceptance test. Upload a test object, then try to delete it. The delete **must fail**.
+This is your acceptance test. Upload a test object, then try to hard-delete a specific locked version. The delete **must fail**.
+
+> **Important:** `aws s3 rm` does NOT test Object Lock. With versioning enabled, `s3 rm` only adds a **delete marker** on top of the object — the locked version remains underneath untouched. You must use `s3api delete-object` with an explicit `--version-id` to trigger the COMPLIANCE check.
 
 ### 8a. Upload a test object
 
 ```powershell
-# Create a small test file
-"test-object-for-lock-verification" | Out-File -FilePath "test-lock.txt" -Encoding UTF8
+# Create a small test file (use $env:TEMP — always exists on Windows)
+"test-object-for-lock-verification" | Out-File -FilePath "$env:TEMP\test-lock.txt" -Encoding UTF8
 
 # Upload it to the landing bucket
-aws s3 cp test-lock.txt s3://$landingBucket/test/test-lock.txt
+aws s3 cp $env:TEMP\test-lock.txt s3://$landingBucket/test/test-lock.txt
 ```
 
-### 8b. Try to delete it — this should be DENIED
+### 8b. Get the version ID of the uploaded object
 
 ```powershell
-aws s3 rm s3://$landingBucket/test/test-lock.txt
+aws s3api list-object-versions --bucket $landingBucket --prefix test/test-lock.txt
 ```
 
-**Expected result:** An error like:
+Note the `VersionId` value from the `"Versions"` array (e.g. `CdQMKgg0oFiv_wFrSOzVwhrynDIBxtti`). Ignore any `DeleteMarkers` entries.
 
-```
-delete failed: s3://project-intelligent-landing-307828758318/test/test-lock.txt
-An error occurred (AccessDenied) ...
-```
+### 8c. Try to hard-delete the locked version — this should be DENIED
 
-or if the Object Lock retention kicks in:
-
-```
-An error occurred (InvalidRequest): Object Lock retention was violated
+```powershell
+aws s3api delete-object `
+  --bucket $landingBucket `
+  --key test/test-lock.txt `
+  --version-id <VERSION_ID>
 ```
 
-Either error = ✅ Object Lock is working.
+**Expected result:**
 
-### 8c. Clean up — wait for retention to expire OR note it for now
+```
+An error occurred (AccessDenied) when calling the DeleteObject operation:
+Access Denied because object protected by object lock.
+```
 
-Since the retention is 365 days, the test object cannot be deleted. For Phase 0 testing purposes, this is acceptable — the bucket will contain one tiny test file. Alternatively, if you need a clean bucket for production use, skip the test file upload and instead verify via the `get-object-lock-configuration` output from Step 6.
+This = ✅ COMPLIANCE mode is working. The object is permanently protected for 365 days.
+
+### 8d. Why `aws s3 rm` appears to succeed (important learning)
+
+`aws s3 rm` without a version ID creates a **delete marker** — a lightweight pointer that hides the object from normal `ls` and `get` operations, making it *look* deleted. The actual locked version remains in place untouched. This is S3 versioning behaviour. The COMPLIANCE guarantee is proven only by attempting to delete the version directly with `--version-id`.
+
+### 8e. Clean up delete markers (optional)
+
+Delete markers are not locked and can be removed at any time. To clean them up:
+
+```powershell
+# List delete markers
+aws s3api list-object-versions --bucket $landingBucket --prefix test/test-lock.txt --query 'DeleteMarkers[*].{Key:Key,VersionId:VersionId}'
+
+# Delete each marker individually using its VersionId
+aws s3api delete-object --bucket $landingBucket --key test/test-lock.txt --version-id <MARKER_VERSION_ID>
+```
+
+The actual locked file versions will remain — only the markers are removed.
 
 ---
 
