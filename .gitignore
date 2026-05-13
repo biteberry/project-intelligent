@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment & secrets — NEVER commit these
+.env
+*.env
+.env.*
+secrets/
+*.secret
+*_secret*
+*secret*.json
+*credentials*
+aws-credentials
+.aws/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# detect-secrets — baseline IS committed (tracks known false positives)
+# .secrets.baseline
+
+# AWS CLI temp files
+response*.json
+*-test.json
+*-target.json
+daily-target.json
+weekly-target.json
+eventbridge-*.json
+payload.json
+ssm-document.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
