@@ -33,6 +33,9 @@ aws-credentials
 htmlcov/
 *.log
 
+# Local PostgreSQL data volume
+data/postgres/
+
 # detect-secrets — baseline IS committed (tracks known false positives)
 # .secrets.baseline
 
