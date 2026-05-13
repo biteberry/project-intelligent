@@ -12,14 +12,14 @@ Also includes the Finnhub API key setup and a Python secrets utility helper.
 ## Tasks
 | Issue | Title | Status |
 |-------|-------|--------|
-| #78 | Define and document secret naming convention | ⬜ To Do |
-| #79 | Create secret placeholders for all external APIs | ⬜ To Do |
-| #80 | Scan codebase to verify zero API keys in committed files | ⬜ To Do |
-| #92 | Register Finnhub account and obtain API key | ⬜ To Do |
-| #93 | Store Finnhub API key in AWS Secrets Manager | ⬜ To Do |
-| #94 | Write Python helper to retrieve secrets at runtime | ⬜ To Do |
-| #50 | Parent story: AWS Secrets Manager | ⬜ To Do |
-| #56 | Parent story: Finnhub API key in Secrets Manager | ⬜ To Do |
+| #78 | Define and document secret naming convention | ✅ Done |
+| #79 | Create secret placeholders for all external APIs | ✅ Done |
+| #80 | Scan codebase to verify zero API keys in committed files | ✅ Done |
+| #92 | Register Finnhub account and obtain API key | ✅ Done |
+| #93 | Store Finnhub API key in AWS Secrets Manager | ✅ Done |
+| #94 | Write Python helper to retrieve secrets at runtime | ✅ Done |
+| #50 | Parent story: AWS Secrets Manager | ✅ Done |
+| #56 | Parent story: Finnhub API key in Secrets Manager | ✅ Done |
 
 ---
 
@@ -43,7 +43,13 @@ aws secretsmanager create-secret `
 }
 ```
 
-**Actual output:** _(fill in after running)_
+**Actual output:**
+```json
+{
+    "ARN": "arn:aws:secretsmanager:ap-south-1:307828758318:secret:/project-intelligent/finnhub/api-key-XXXXXX",
+    "Name": "/project-intelligent/finnhub/api-key"
+}
+```
 
 ---
 
@@ -57,7 +63,13 @@ aws secretsmanager create-secret `
   --region ap-south-1
 ```
 
-**Actual output:** _(fill in after running)_
+**Actual output:**
+```json
+{
+    "ARN": "arn:aws:secretsmanager:ap-south-1:307828758318:secret:/project-intelligent/alphavantage/api-key-XXXXXX",
+    "Name": "/project-intelligent/alphavantage/api-key"
+}
+```
 
 ---
 
@@ -76,7 +88,11 @@ aws secretsmanager list-secrets `
 /project-intelligent/alphavantage/api-key
 ```
 
-**Actual output:** _(fill in after running)_
+**Actual output:**
+```
+/project-intelligent/finnhub/api-key
+/project-intelligent/alphavantage/api-key
+```
 
 ---
 
@@ -156,18 +172,35 @@ Create `src/utils/secrets.py` — run this command (no key in file):
 
 ```powershell
 pip install detect-secrets
-detect-secrets scan > .secrets.baseline
-```
-
-Then check for any real findings:
-
-```powershell
+python -c "import subprocess; result = subprocess.run(['detect-secrets', 'scan'], capture_output=True, text=True); open('.secrets.baseline', 'w').write(result.stdout)"
 detect-secrets audit .secrets.baseline
 ```
 
-**Expected:** Zero high-confidence secret findings.
+> **Note:** Use `python -c` workaround on Windows PowerShell — the `>` redirect writes UTF-16 which breaks detect-secrets.
 
-**Actual output:** _(fill in after running)_
+**Actual output:** 5 findings, all verified safe (OIDC thumbprint + GitHub Project field IDs). Marked `y` (safe to commit).
+
+---
+
+## Step 9b — Add pre-commit hook to block future secret commits (#80)
+
+```powershell
+pip install pre-commit
+pre-commit install
+pre-commit run detect-secrets --all-files
+```
+
+**Config file:** `.pre-commit-config.yaml`
+```yaml
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+```
+
+**Actual output:** `detect-secrets...Passed` — hook installed and working.
 
 ---
 
