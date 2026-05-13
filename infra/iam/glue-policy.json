@@ -1,0 +1,30 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GlueCatalogReadWrite",
+      "Effect": "Allow",
+      "Action": [
+        "glue:GetDatabase",
+        "glue:GetDatabases",
+        "glue:GetTable",
+        "glue:GetTables",
+        "glue:CreateTable",
+        "glue:UpdateTable",
+        "glue:BatchCreatePartition",
+        "glue:GetPartition",
+        "glue:GetPartitions",
+        "glue:BatchGetPartition"
+      ],
+      "Resource": [
+        "arn:aws:glue:ap-south-1:307828758318:catalog",
+        "arn:aws:glue:ap-south-1:307828758318:database/project_intelligent_bronze",
+        "arn:aws:glue:ap-south-1:307828758318:database/project_intelligent_silver",
+        "arn:aws:glue:ap-south-1:307828758318:database/project_intelligent_gold",
+        "arn:aws:glue:ap-south-1:307828758318:table/project_intelligent_bronze/*",
+        "arn:aws:glue:ap-south-1:307828758318:table/project_intelligent_silver/*",
+        "arn:aws:glue:ap-south-1:307828758318:table/project_intelligent_gold/*"
+      ]
+    }
+  ]
+}
