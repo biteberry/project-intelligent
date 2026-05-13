@@ -205,6 +205,23 @@ aws iam simulate-principal-policy `
 
 **Actual output:** *(all actions returned allowed — success)*
 
+### 3d — Live test from EC2 via SSM Session Manager
+
+```bash
+aws ssm start-session --target i-004ede57a842280fe --region ap-south-1
+# inside EC2:
+aws glue get-databases --region ap-south-1 --query 'DatabaseList[?starts_with(Name,`project_intelligent`)].Name'
+```
+
+**Actual output:**
+```json
+[
+    "project_intelligent_bronze",
+    "project_intelligent_gold",
+    "project_intelligent_silver"
+]
+```
+
 ✅ **#83 done**
 
 ---
