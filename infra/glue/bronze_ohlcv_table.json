@@ -1,0 +1,32 @@
+{
+  "DatabaseName": "project_intelligent_bronze",
+  "TableInput": {
+    "Name": "bronze_ohlcv",
+    "Description": "Raw OHLCV data ingested from market data providers without transformation",
+    "TableType": "EXTERNAL_TABLE",
+    "Parameters": {
+      "table_type": "ICEBERG",
+      "classification": "iceberg"
+    },
+    "StorageDescriptor": {
+      "Columns": [
+        {"Name": "date",         "Type": "string"},
+        {"Name": "open",         "Type": "double"},
+        {"Name": "high",         "Type": "double"},
+        {"Name": "low",          "Type": "double"},
+        {"Name": "close",        "Type": "double"},
+        {"Name": "adj_close",    "Type": "double"},
+        {"Name": "volume",       "Type": "bigint"},
+        {"Name": "symbol",       "Type": "string"},
+        {"Name": "source",       "Type": "string"},
+        {"Name": "ingestion_ts", "Type": "string"}
+      ],
+      "Location": "s3://project-intelligent-bronze-307828758318/ohlcv/",
+      "InputFormat": "org.apache.iceberg.mr.hive.HiveIcebergInputFormat",
+      "OutputFormat": "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat",
+      "SerdeInfo": {
+        "SerializationLibrary": "org.apache.iceberg.mr.hive.HiveIcebergSerDe"
+      }
+    }
+  }
+}

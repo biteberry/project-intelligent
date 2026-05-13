@@ -1,0 +1,34 @@
+{
+  "DatabaseName": "project_intelligent_silver",
+  "TableInput": {
+    "Name": "silver_ohlcv",
+    "Description": "Cleaned and enriched OHLCV data with validation flags and market cap tiers",
+    "TableType": "EXTERNAL_TABLE",
+    "Parameters": {
+      "table_type": "ICEBERG",
+      "classification": "iceberg"
+    },
+    "StorageDescriptor": {
+      "Columns": [
+        {"Name": "date",        "Type": "string"},
+        {"Name": "symbol",      "Type": "string"},
+        {"Name": "open",        "Type": "double"},
+        {"Name": "high",        "Type": "double"},
+        {"Name": "low",         "Type": "double"},
+        {"Name": "close",       "Type": "double"},
+        {"Name": "adj_close",   "Type": "double"},
+        {"Name": "volume",      "Type": "bigint"},
+        {"Name": "sector",      "Type": "string"},
+        {"Name": "market_cap",  "Type": "double"},
+        {"Name": "cap_tier",    "Type": "string"},
+        {"Name": "is_valid_row","Type": "boolean"}
+      ],
+      "Location": "s3://project-intelligent-silver-307828758318/ohlcv/",
+      "InputFormat": "org.apache.iceberg.mr.hive.HiveIcebergInputFormat",
+      "OutputFormat": "org.apache.iceberg.mr.hive.HiveIcebergOutputFormat",
+      "SerdeInfo": {
+        "SerializationLibrary": "org.apache.iceberg.mr.hive.HiveIcebergSerDe"
+      }
+    }
+  }
+}
