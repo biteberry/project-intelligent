@@ -1,0 +1,14 @@
+{
+  "Name": "project-intelligent",
+  "Configuration": {
+    "ResultConfiguration": {
+      "OutputLocation": "s3://project-intelligent-silver-307828758318/athena-results/"
+    },
+    "EnforceWorkGroupConfiguration": false,
+    "PublishCloudWatchMetricsEnabled": false,
+    "EngineVersion": {
+      "SelectedEngineVersion": "Athena engine version 3"
+    }
+  },
+  "Description": "Workgroup for project-intelligent — Athena engine v3 (required for Iceberg queries)"
+}

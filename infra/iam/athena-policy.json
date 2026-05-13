@@ -1,0 +1,34 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AthenaQueryAccess",
+      "Effect": "Allow",
+      "Action": [
+        "athena:StartQueryExecution",
+        "athena:GetQueryExecution",
+        "athena:GetQueryResults",
+        "athena:StopQueryExecution",
+        "athena:GetWorkGroup",
+        "athena:ListWorkGroups"
+      ],
+      "Resource": [
+        "arn:aws:athena:ap-south-1:307828758318:workgroup/project-intelligent"
+      ]
+    },
+    {
+      "Sid": "AthenaResultsBucketAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::project-intelligent-silver-307828758318/athena-results/*",
+        "arn:aws:s3:::project-intelligent-silver-307828758318"
+      ]
+    }
+  ]
+}
