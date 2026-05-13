@@ -150,6 +150,28 @@ infra/cloudformation/
 - Auditability through centralized logs
 - IaC drift detection: `terraform plan` in CI will catch any manual console changes
 
+### Secret Naming Convention (NFR-05)
+
+All secrets stored in AWS Secrets Manager follow this convention:
+
+```
+/project-intelligent/<service>/<key-type>
+```
+
+| Secret Name | Service | Purpose |
+|-------------|---------|---------|
+| `/project-intelligent/finnhub/api-key` | Finnhub | Stock quotes & fundamentals |
+| `/project-intelligent/alphavantage/api-key` | AlphaVantage | Additional stock data |
+| `/project-intelligent/postgres/password` | PostgreSQL | Local DB password (future) |
+
+**Rules:**
+- Secret names are lowercase with hyphens — no underscores
+- Values are never stored in any repository file
+- Placeholder value `REPLACE_ME` is used when creating secret slots before keys are available
+- Access restricted to EC2 IAM role and Lambda role only — no wildcard resource policies
+- Python helper `src/utils/secrets.py` provides `get_secret()` with in-memory cache for runtime retrieval
+- detect-secrets pre-commit hook blocks any accidental key exposure (`v1.5.0`, baseline: `.secrets.baseline`)
+
 ---
 
 ## Guardrails
