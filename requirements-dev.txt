@@ -1,0 +1,7 @@
+ruff==0.11.9
+pytest==9.0.3
+pytest-cov==6.1.0
+boto3==1.43.6
+botocore==1.43.6
+moto[s3,dynamodb,secretsmanager]==5.1.4
+requests==2.34.0
