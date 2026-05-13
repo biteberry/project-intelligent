@@ -5,3 +5,4 @@ boto3==1.43.6
 botocore==1.43.6
 moto[s3,dynamodb,secretsmanager]==5.1.4
 requests==2.34.0
+pandas==2.2.3
