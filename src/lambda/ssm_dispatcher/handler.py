@@ -14,7 +14,15 @@ import boto3
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-ssm = boto3.client('ssm')
+_ssm = None
+
+
+def _get_ssm_client():
+    global _ssm
+    if _ssm is None:
+        region = os.environ.get("AWS_DEFAULT_REGION", "ap-south-1")
+        _ssm = boto3.client("ssm", region_name=region)
+    return _ssm
 
 def lambda_handler(event, context):
     """
@@ -48,7 +56,7 @@ def lambda_handler(event, context):
     }
 
     try:
-        response = ssm.send_command(
+        response = _get_ssm_client().send_command(
             InstanceIds=[ec2_instance_id],
             DocumentName=ssm_document_name,
             Parameters=command_parameters,
