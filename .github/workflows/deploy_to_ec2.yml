@@ -28,7 +28,7 @@ jobs:
               \"cd /home/ec2-user/project-intelligent\",
               \"git fetch origin main\",
               \"git reset --hard origin/main\",
-              \"pip3 install -r requirements.txt\"
+              \"pip3 install --user -r requirements.txt\"
             ]" \
             --timeout-seconds 600 \
             --region ap-south-1
