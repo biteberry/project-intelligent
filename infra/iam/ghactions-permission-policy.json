@@ -28,6 +28,12 @@
                 "arn:aws:ec2:*:*:instance/*",
                 "arn:aws:ssm:*:*:document/AWS-RunShellScript"
             ]
+        },
+        {
+            "Sid": "SSMGetCommandInvocation",
+            "Effect": "Allow",
+            "Action": "ssm:GetCommandInvocation",
+            "Resource": "arn:aws:ssm:*:*:*"
         }
     ]
 }
