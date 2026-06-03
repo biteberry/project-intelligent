@@ -2,7 +2,7 @@ certifi
 charset-normalizer
 idna
 jmespath
-numpy
+numpy<2.0.0
 pandas
 python-dateutil
 requests
