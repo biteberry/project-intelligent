@@ -33,7 +33,7 @@
             "Sid": "SSMGetCommandInvocation",
             "Effect": "Allow",
             "Action": "ssm:GetCommandInvocation",
-            "Resource": "arn:aws:ssm:*:*:*"
+            "Resource": "*"
         }
     ]
 }
