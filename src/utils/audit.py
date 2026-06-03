@@ -6,13 +6,14 @@ def write_audit_record(run_id: str, job_id: str, status: str, metrics: dict):
     """
     Write a job execution audit record to DynamoDB.
     """
-    table_name = os.environ.get("DYNAMODB_AUDIT_TABLE", "project-intelligent-job-audit")
+    table_name = os.environ.get("DYNAMODB_AUDIT_TABLE", "project-intelligent-audit")
     dynamodb = boto3.resource('dynamodb', region_name='ap-south-1')
     table = dynamodb.Table(table_name)
     
     item = {
-        'run_id': run_id,
+        'job_date': datetime.utcnow().strftime('%Y-%m-%d'),
         'job_id': job_id,
+        'run_id': run_id,
         'status': status,
         'timestamp': datetime.utcnow().isoformat() + 'Z',
         'metrics': metrics
