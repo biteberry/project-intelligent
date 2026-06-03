@@ -19,6 +19,15 @@
             "Effect": "Allow",
             "Action": "lambda:UpdateFunctionCode",
             "Resource": "arn:aws:lambda:*:*:function:project-intelligent-*"
+        },
+        {
+            "Sid": "SSMSendCommandForEC2Deploy",
+            "Effect": "Allow",
+            "Action": "ssm:SendCommand",
+            "Resource": [
+                "arn:aws:ec2:*:*:instance/*",
+                "arn:aws:ssm:*:*:document/AWS-RunShellScript"
+            ]
         }
     ]
 }
