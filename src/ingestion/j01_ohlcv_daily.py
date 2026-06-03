@@ -11,13 +11,7 @@ from src.ingestion.fetcher import fetch_daily_ohlcv
 from src.ingestion.bronze_writer import write_to_bronze
 from src.utils.audit import write_audit_record
 from src.utils.alerts import publish_sns_alert
-
-def get_universe():
-    """
-    Mock function to return active universe of symbols.
-    In a real scenario, this would read from DynamoDB or a static config.
-    """
-    return ["RELIANCE.NS", "TCS.NS", "INFY.NS", "AAPL", "MSFT"]
+from src.utils.universe import get_universe
 
 def run_j01(dry_run=False):
     job_id = "J01"

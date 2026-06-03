@@ -7,7 +7,8 @@ import pandas as pd
 # Ensure the src directory is in the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.utils.universe import get_universe, get_market_context
+from src.utils.universe import get_universe
+from src.utils.market_context import get_market_context
 from src.utils.audit import write_audit_record
 from src.utils.alerts import publish_sns_alert
 from src.ingestion.fundamentals_fetcher import download_and_land_fundamentals
