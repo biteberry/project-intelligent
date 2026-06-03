@@ -12,8 +12,8 @@ def fetch_daily_ohlcv(symbol: str) -> pd.DataFrame:
     ticker = yf.Ticker(symbol)
     # Using auto_adjust=False to ensure we get raw Open/High/Low/Close and a separate 'Adj Close'
     df = ticker.history(period="1d", auto_adjust=False)
-    
+
     if df.empty:
         raise ValueError(f"No data returned for symbol {symbol}")
-        
+
     return df

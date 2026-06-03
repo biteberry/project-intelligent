@@ -2,14 +2,14 @@ import os
 import boto3
 from datetime import datetime
 
-def write_audit_record(run_id: str, job_id: str, status: str, metrics: dict):
+def write_audit_record(run_id: str, job_id: str, status: str, metrics: dict, error_message: str = None):
     """
     Write a job execution audit record to DynamoDB.
     """
     table_name = os.environ.get("DYNAMODB_AUDIT_TABLE", "project-intelligent-audit")
     dynamodb = boto3.resource('dynamodb', region_name='ap-south-1')
     table = dynamodb.Table(table_name)
-    
+
     item = {
         'job_date': datetime.utcnow().strftime('%Y-%m-%d'),
         'job_id': job_id,
@@ -18,7 +18,9 @@ def write_audit_record(run_id: str, job_id: str, status: str, metrics: dict):
         'timestamp': datetime.utcnow().isoformat() + 'Z',
         'metrics': metrics
     }
-    
+    if error_message:
+        item['error_message'] = error_message
+
     try:
         table.put_item(Item=item)
         print(f"Audit record written for {run_id}")

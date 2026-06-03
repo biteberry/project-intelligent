@@ -1,5 +1,4 @@
 import pandas_market_calendars as mcal
-from datetime import datetime
 import pandas as pd
 
 def is_trading_day(date_str: str, market: str = 'BSE') -> bool:
@@ -9,13 +8,13 @@ def is_trading_day(date_str: str, market: str = 'BSE') -> bool:
     """
     # Initialize the calendar
     calendar = mcal.get_calendar(market)
-    
+
     # Parse the input date
     dt = pd.Timestamp(date_str)
-    
+
     # Get valid trading days for the week around the date to handle timezone/boundary edge cases safely
     schedule = calendar.schedule(start_date=dt - pd.Timedelta(days=1), end_date=dt + pd.Timedelta(days=1))
-    
+
     # If the date is in the schedule index, it's a trading day
     return dt.strftime('%Y-%m-%d') in schedule.index.strftime('%Y-%m-%d')
 

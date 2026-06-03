@@ -7,7 +7,7 @@ def publish_sns_alert(subject: str, message: str):
     """
     topic_arn = os.environ.get("SNS_ALERT_TOPIC_ARN", "arn:aws:sns:ap-south-1:307828758318:project-intelligent-alerts")
     sns = boto3.client('sns', region_name='ap-south-1')
-    
+
     try:
         sns.publish(
             TopicArn=topic_arn,
