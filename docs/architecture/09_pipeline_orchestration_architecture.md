@@ -12,9 +12,10 @@ The pipeline is split between two execution environments by job type:
 | Environment | Role | Justification |
 | --- | --- | --- |
 | AWS Lambda | Triggers, lightweight coordination, status checks, API serving | Serverless, zero idle cost, scales to zero |
-| EC2 t2.micro | Heavy compute: Bronze→Silver, Silver→Gold, model training, daily sync | Needs 1 GB RAM, file system access, Python libraries, long run time |
+| EC2 t3.micro | Heavy compute: Bronze→Silver, Silver→Gold, model training, daily sync | Needs 1 GB RAM, file system access, Python libraries, long run time |
 
 Lambda has a 15-minute timeout and 1 GB RAM ceiling. Bronze→Silver promotion, feature engineering, and model training all exceed these limits for a 30-symbol universe. These jobs run directly on EC2, triggered via Lambda invoking an EC2 Systems Manager Run Command.
+
 
 ---
 
@@ -151,7 +152,7 @@ Each job reads the DynamoDB audit table to confirm upstream job status before st
 ## EC2 Instance Management
 
 ### Instance State
-- EC2 t2.micro runs continuously (24/7) to remain within the 750-hour free-tier monthly allocation.
+- EC2 t3.micro runs continuously (24/7) to remain within the 750-hour free-tier monthly allocation.
 - Stopping and starting the instance does not save cost within free tier; it only risks missing scheduled job windows.
 - Instance must be running at all scheduled trigger windows.
 
@@ -179,7 +180,7 @@ Every job instance is assigned a run_id at start time:
 ### G1 - No Concurrent Pipeline Jobs
 - Only one job runs on EC2 at any time.
 - If a previous job is still running when a new trigger fires, the new trigger writes a "skipped due to active job" audit record and exits.
-- This prevents RAM contention and partial writes on t2.micro.
+- This prevents RAM contention and partial writes on t3.micro.
 
 ### G2 - Upstream Status Gate
 - Every job in the daily chain must read the DynamoDB audit table and confirm upstream job success before proceeding.
