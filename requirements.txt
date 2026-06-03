@@ -14,4 +14,4 @@ pyarrow
 tenacity
 boto3
 botocore
-pandas_market_calendars
+pandas_market_calendars<4.4.0
