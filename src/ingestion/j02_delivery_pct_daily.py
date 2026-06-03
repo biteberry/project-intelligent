@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 from src.utils.holidays import is_trading_day
 from src.utils.audit import write_audit_record
-from src.utils.alerts import send_pipeline_alert
+from src.utils.alerts import publish_sns_alert
 from src.ingestion.bhav_copy_fetcher import download_bhav_copy
 from src.ingestion.bhav_copy_parser import parse_delivery_pct
 from src.ingestion.bronze_writer import write_dataframe_to_bronze
@@ -82,7 +82,10 @@ def main():
             error_message=str(e)
         )
 
-        send_pipeline_alert(job_id, run_id, str(e))
+        publish_sns_alert(
+            subject=f"{job_id} Critical Job Failure",
+            message=f"Run {run_id} crashed entirely.\nError: {str(e)}"
+        )
         sys.exit(1)
 
 if __name__ == "__main__":
