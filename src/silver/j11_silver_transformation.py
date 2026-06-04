@@ -83,7 +83,7 @@ def execute_grand_join() -> 'pyarrow.Table':
     query = f"SELECT {', '.join(select_clauses)} FROM read_parquet('{s3_prefix}/ohlcv/*/*/*.parquet') o " + " ".join(join_clauses)
     
     print(f"Executing dynamic DuckDB Grand Join...")
-    arrow_table = con.execute(query).arrow()
+    arrow_table = con.execute(query).fetch_arrow_table()
     return arrow_table
 
 def main():
