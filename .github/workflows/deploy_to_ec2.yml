@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'requirements.txt'
+      - 'requirements*.txt'
 
 jobs:
   deploy:
