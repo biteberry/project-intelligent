@@ -25,6 +25,7 @@ def main():
         con.execute("INSTALL iceberg; LOAD iceberg;")
         con.execute("INSTALL aws; LOAD aws; CALL load_aws_credentials();")
         con.execute("SET s3_region='ap-south-1';")
+        con.execute("SET unsafe_enable_version_guessing=true;")
         
         # Query the enriched OHLCV data from Silver
         query = """
