@@ -50,12 +50,15 @@
             "Resource": "*"
         },
         {
-            "Sid": "SecretsManagerProjectAccess",
+            "Sid": "SSMParameterStoreProjectAccess",
             "Effect": "Allow",
             "Action": [
-                "secretsmanager:GetSecretValue"
+                "ssm:GetParameter",
+                "ssm:GetParameters",
+                "ssm:GetParameterHistory",
+                "ssm:GetParametersByPath"
             ],
-            "Resource": "arn:aws:secretsmanager:*:*:secret:project-intelligent-*"
+            "Resource": "arn:aws:ssm:*:*:parameter/project-intelligent/*"
         },
         {
             "Sid": "GlueCatalogProjectAccess",

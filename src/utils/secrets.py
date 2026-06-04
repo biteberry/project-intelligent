@@ -4,7 +4,7 @@ _cache: dict = {}
 
 
 def get_secret(secret_name: str, region_name: str = "ap-south-1") -> str:
-    """Retrieve a secret value from AWS Secrets Manager.
+    """Retrieve a secret value from AWS SSM Parameter Store.
 
     Caches the result in memory for the process lifetime to avoid
     repeated API calls on every invocation.
@@ -22,9 +22,9 @@ def get_secret(secret_name: str, region_name: str = "ap-south-1") -> str:
     if secret_name in _cache:
         return _cache[secret_name]
 
-    client = boto3.client("secretsmanager", region_name=region_name)
-    response = client.get_secret_value(SecretId=secret_name)
-    secret_value = response["SecretString"]
+    client = boto3.client("ssm", region_name=region_name)
+    response = client.get_parameter(Name=secret_name, WithDecryption=True)
+    secret_value = response["Parameter"]["Value"]
     _cache[secret_name] = secret_value
     return secret_value
 
