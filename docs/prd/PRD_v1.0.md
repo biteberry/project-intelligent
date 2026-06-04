@@ -88,8 +88,8 @@ Each requirement is numbered, uniquely identified, and testable. Every requireme
 ### FR-05 — Earnings Calendar Collection
 **The system must collect upcoming quarterly result announcement dates (board meeting dates) for all NSE-listed universe symbols.**
 
-- Source: NSE corporate filings board meetings page (free, public).
-- Must be refreshed weekly every Sunday.
+- Source: yfinance `.calendar` and `.earnings_dates` attributes.
+- Must be refreshed weekly every Saturday.
 - Must expose `days_to_next_earnings` and `days_since_last_earnings` fields on every Silver row.
 
 **Acceptance Criteria:** ≥80% of active NSE universe symbols have a known next earnings date populated in Silver at any point in the quarter.
@@ -358,7 +358,7 @@ Feature groups:
 | OHLCV (US stocks) | yfinance no suffix | Daily | Yes |
 | NSE delivery percentage | NSE bhav copy CSV | Daily | Yes (India) |
 | Fundamentals (P/E, debt, cash flow, etc.) | yfinance `.info`, `.financials`, `.balance_sheet`, `.cashflow` | Quarterly | Yes |
-| NSE earnings calendar | NSE corporate filings board meetings page | Weekly | Yes (India) |
+| NSE earnings calendar | yfinance `.calendar` and `.earnings_dates` | Weekly | Yes (India) |
 | Corporate actions (bonus, split, dividend) | yfinance `.actions` + NSE corporate calendar | Weekly | Yes |
 | India VIX | yfinance `^INDIAVIX` | Daily | Yes (India) |
 | Nifty 50 index | yfinance `^NSEI` | Daily | Yes (India) |
@@ -402,7 +402,7 @@ The following are explicitly NOT part of Phase 1. They are not gaps — they are
 | A1 | AWS free-tier account remains active and within limits for the first 12 months |
 | A2 | yfinance continues to provide NSE data with `.NS` suffix at current data quality |
 | A3 | NSE bhav copy CSV format does not change without notice |
-| A4 | NSE board meeting intimation page remains publicly accessible without login |
+| A4 | yfinance API remains stable for scraping calendar and earnings dates without authentication blocks |
 | A5 | Finnhub free tier remains at 60 calls/min with no daily cap |
 | A6 | RBI and FRED continue to publish macro data through free public endpoints |
 | A7 | Local laptop is available and powered during the daily sync window (overnight) |

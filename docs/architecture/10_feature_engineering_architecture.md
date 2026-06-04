@@ -201,7 +201,7 @@ Calendar features capture time-of-year effects and, critically, the proximity of
 
 #### Earnings Event Features
 
-Source: Silver layer field `days_to_next_earnings` and `days_since_last_earnings`, derived from the quarterly results calendar (NSE board meeting dates for India; yfinance `.calendar` for US). See ingestion architecture doc 08 for data source design.
+Source: Silver layer field `days_to_next_earnings` and `days_since_last_earnings`, derived from the quarterly results calendar (yfinance `.calendar` for both US and India). See ingestion architecture doc 08 for data source design.
 
 | Feature Name | Calculation | Notes |
 | --- | --- | --- |
@@ -231,7 +231,7 @@ Indian companies follow the April–March financial year. Result announcement se
 
 During peak result season (October–November and January–February), a large fraction of the universe will have `pre_earnings_zone_flag = 1` simultaneously. The pipeline must handle this — it does not pause; it simply generates fewer actionable predictions during result season, which is the correct conservative behaviour.
 
-Earnings dates are sourced from the NSE board meeting intimation calendar (Bronze) and joined to Silver as `days_to_next_earnings`. See doc 08 ingestion architecture for the full data source design and Bronze partition structure.
+Earnings dates are sourced from the yfinance calendar API (Bronze) and joined to Silver as `days_to_next_earnings`. See doc 08 ingestion architecture for the full data source design and Bronze partition structure.
 
 #### Corporate Action Event Features
 When a company announces a bonus, split, or dividend, the stock price adjusts mechanically on the ex-date. This price drop is NOT a bearish signal — it is an accounting event. Without flagging these dates, the ML model learns false patterns (e.g., “-50% return = crash” when in fact it was a 1:1 bonus). All Gold rows with corporate action on that date are flagged and excluded from training.

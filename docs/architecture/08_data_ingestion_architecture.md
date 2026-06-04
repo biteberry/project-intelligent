@@ -139,7 +139,7 @@ s3://project-intelligent-bronze/
 
 ---
 
-## Quarterly Results Calendar Ingestion (NSE Board Meeting Dates)
+## Quarterly Results Calendar Ingestion (yfinance Earnings Dates)
 
 ### Why This Matters
 Indian companies are required to inform NSE/BSE in advance of any board meeting where quarterly financial results will be discussed. NSE publishes these board meeting dates publicly — this means we know **in advance** which stocks are going to announce results and on what date. This is the primary source for the earnings event features.
@@ -161,15 +161,17 @@ There are two distinct price patterns that occur around result announcements:
 
 NSE publishes board meeting intimation data at: `https://www.nseindia.com/companies-listing/corporate-filings-board-meetings`
 
-This endpoint is publicly accessible (no login required) and provides:
-- Company name and NSE symbol
-- Board meeting date
-- Purpose (quarterly results, annual results, dividend, etc.)
-- Date of intimation to NSE
+### Data Source for NSE: yfinance
 
-**Strategy:** Pull this data weekly (every Sunday) via an HTTP GET request. Filter for purpose = "Financial Results" (quarterly or annual). Covers all NSE-listed companies, not just universe symbols.
+The pipeline retrieves upcoming earnings dates natively via `yfinance.Ticker(symbol).calendar` (which relies on `lxml` for internal parsing) instead of building a complex and brittle scraper for the NSE corporate filings site. This approach provides a unified interface for both US and India market contexts.
 
-**After pulling:** Filter to only symbols in the current active universe. Store in Bronze as a flat parquet file partitioned by `fetch_date`.
+The pipeline pulls the payload and flattens it:
+
+- Extracts `Earnings Date` from the calendar dictionary.
+- If multiple dates exist, it identifies the nearest upcoming date.
+- Saves the JSON payload into the Landing bucket before parsing.
+
+**API Limit Mitigation:** Rate-limiting via `tenacity` retry logic to avoid Yahoo Finance IP blocking.
 
 ### Data Source for US: yfinance `.calendar`
 - `yfinance.Ticker(symbol).calendar` returns the next expected earnings date for US stocks.
@@ -213,7 +215,7 @@ The Silver stage joins the earnings calendar to the daily OHLCV symbol table and
 - These two fields are available on every Silver row for every symbol with a known calendar entry.
 
 ### Coverage Gaps
-- NSE board meeting notices are typically filed 7–15 days before the meeting. For advance planning further out, coverage is sparse.
+- Coverage for Indian stocks via Yahoo Finance is historically robust, but may occasionally lag behind immediate NSE portal updates.
 - If a symbol has no upcoming calendar entry, `days_to_next_earnings` is set to null. The feature engineering layer treats null as "unknown" and the earnings blackout rule defaults to safe (no blackout if date unknown, but model receives a `earnings_date_unknown_flag = 1`).
 - Newly listed companies may not have historical calendar entries — they are excluded from earnings event features until at least one quarter of history is available.
 
