@@ -78,7 +78,7 @@ def execute_grand_join() -> 'pyarrow.Table':
     else:
         select_clauses.append("0.0 AS delivery_pct")
         
-    select_clauses.append("current_timestamp AS silver_ingestion_timestamp")
+    select_clauses.append("CAST(current_timestamp AS TIMESTAMP) AS silver_ingestion_timestamp")
     
     query = f"SELECT {', '.join(select_clauses)} FROM read_parquet('{s3_prefix}/ohlcv/*/*/*.parquet') o " + " ".join(join_clauses)
     
