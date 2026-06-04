@@ -3,7 +3,7 @@ import sys
 import duckdb
 import pandas as pd
 import numpy as np
-import pandas_ta as ta
+
 
 # Ensure AWS Region is set for Headless SSM
 os.environ['AWS_DEFAULT_REGION'] = 'ap-south-1'
@@ -54,11 +54,27 @@ def main():
             
             # Ensure index is datetime for some pandas-ta functions if necessary, but default index works
             
+            import ta
+
             # Technical Indicators
-            group.ta.rsi(length=14, append=True)
-            group.ta.macd(fast=12, slow=26, signal=9, append=True)
-            group.ta.bbands(length=20, std=2, append=True)
-            group.ta.atr(length=14, append=True)
+            # RSI
+            group['rsi_14'] = ta.momentum.RSIIndicator(close=group['close'], window=14).rsi()
+            
+            # MACD
+            macd = ta.trend.MACD(close=group['close'], window_fast=12, window_slow=26, window_sign=9)
+            group['macd_12_26_9'] = macd.macd()
+            group['macdh_12_26_9'] = macd.macd_diff()
+            group['macds_12_26_9'] = macd.macd_signal()
+            
+            # Bollinger Bands
+            bb = ta.volatility.BollingerBands(close=group['close'], window=20, window_dev=2)
+            group['bbl_20_2_0'] = bb.bollinger_lband()
+            group['bbm_20_2_0'] = bb.bollinger_mavg()
+            group['bbu_20_2_0'] = bb.bollinger_hband()
+            
+            # ATR
+            atr = ta.volatility.AverageTrueRange(high=group['high'], low=group['low'], close=group['close'], window=14)
+            group['atr_14'] = atr.average_true_range()
             
             # Returns
             group['return_1d'] = group['close'].pct_change(1)
