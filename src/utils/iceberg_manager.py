@@ -12,7 +12,8 @@ _catalog = load_catalog(
     **{
         "type": "glue",
         "s3.region": "ap-south-1",
-        "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO"
+        "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO",
+        "downcast-ns-timestamp-to-us-on-write": "true"
     }
 )
 
