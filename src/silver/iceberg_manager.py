@@ -3,6 +3,9 @@ import pyarrow as pa
 from pyiceberg.catalog import load_catalog
 from pyiceberg.exceptions import NoSuchNamespaceError, NoSuchTableError
 
+# Ensure boto3 has the correct region for Glue
+os.environ['AWS_DEFAULT_REGION'] = 'ap-south-1'
+
 # Configure PyIceberg to use AWS Glue Data Catalog
 _catalog = load_catalog(
     "default",
