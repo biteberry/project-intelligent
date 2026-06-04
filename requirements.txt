@@ -13,6 +13,7 @@ yfinance
 pyarrow
 tenacity
 beautifulsoup4
+lxml
 boto3
 botocore
 pandas_market_calendars<4.4.0

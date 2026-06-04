@@ -39,7 +39,9 @@ jobs:
               \"echo 'Starting J04 (Corporate Actions)'\",
               \"python3 src/ingestion/j04_corporate_actions_weekly.py\",
               \"echo 'Starting J05 (India Macro)'\",
-              \"python3 src/ingestion/j05_macro_weekly.py\"
+              \"python3 src/ingestion/j05_macro_weekly.py\",
+              \"echo 'Starting J06 (Earnings Calendar)'\",
+              \"python3 src/ingestion/j06_earnings_calendar_weekly.py\"
             ]" \
             --timeout-seconds 900 \
             --region ap-south-1 \
