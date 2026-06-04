@@ -62,7 +62,7 @@ jobs:
           
       - name: J11 - Silver Transformation
         run: |
-          CMD_ID=$(aws ssm send-command --instance-ids "i-0039eff1ed9cbe313" --document-name "AWS-RunShellScript" --parameters commands="[\"cd /home/ec2-user/project-intelligent\",\"git pull\",\"pip3 install --user -r requirements_heavy.txt\",\"python3 src/silver/j11_silver_transformation.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
+          CMD_ID=$(aws ssm send-command --instance-ids "i-0039eff1ed9cbe313" --document-name "AWS-RunShellScript" --parameters commands="[\"sudo yum install -y git python3-pip\",\"if [ ! -d '/home/ec2-user/project-intelligent' ]; then git clone https://github.com/biteberry/project-intelligent.git /home/ec2-user/project-intelligent; fi\",\"cd /home/ec2-user/project-intelligent\",\"git fetch origin main\",\"git reset --hard origin/main\",\"pip3 install --user -r requirements_heavy.txt\",\"python3 src/silver/j11_silver_transformation.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
           aws ssm wait command-executed --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1
           STATUS=$(aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "Status" --output text)
           if [ "$STATUS" != "Success" ]; then exit 1; fi
