@@ -18,9 +18,19 @@ _catalog = load_catalog(
 
 def ensure_namespace_exists(namespace: str):
     """Ensure the AWS Glue Database exists."""
-    try:
-        _catalog.load_namespace(namespace)
-    except NoSuchNamespaceError:
+    namespaces = _catalog.list_namespaces()
+    
+    # Check if namespace exists in the list (can be strings or tuples)
+    exists = False
+    for ns in namespaces:
+        if isinstance(ns, tuple) and ns[0] == namespace:
+            exists = True
+            break
+        elif ns == namespace:
+            exists = True
+            break
+            
+    if not exists:
         print(f"Creating Glue Database: {namespace}")
         _catalog.create_namespace(namespace)
 
