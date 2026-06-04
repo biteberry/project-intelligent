@@ -104,9 +104,34 @@ jobs:
           aws ec2 wait instance-running --instance-ids i-0039eff1ed9cbe313 --region ap-south-1
           sleep 15
           
+      - name: Install Python Dependencies on Node B
+        run: |
+          CMD_ID=$(aws ssm send-command --instance-ids "i-0039eff1ed9cbe313" --document-name "AWS-RunShellScript" --parameters commands="[\"sudo yum install -y git python3.11 python3.11-pip\",\"if [ ! -d '/home/ec2-user/project-intelligent' ]; then git clone https://github.com/biteberry/project-intelligent.git /home/ec2-user/project-intelligent; fi\",\"cd /home/ec2-user/project-intelligent\",\"git fetch origin main\",\"git reset --hard origin/main\",\"python3.11 -m pip install --upgrade pip wheel setuptools\",\"pip3.11 install --user --only-binary :all: -r requirements_heavy.txt\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
+          
+          while true; do
+            STATUS=$(aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "Status" --output text)
+            if [ "$STATUS" == "Success" ]; then
+              echo "Installation Succeeded."
+              echo "--- STDOUT ---"
+              aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "StandardOutputContent" --output text
+              break
+            elif [[ "$STATUS" == "Failed" || "$STATUS" == "DeliveryTimedOut" || "$STATUS" == "ExecutionTimedOut" ]]; then
+              echo "Installation Failed with status: $STATUS"
+              echo "--- STDERR ---"
+              aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "StandardErrorContent" --output text
+              echo "--- STDOUT ---"
+              aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "StandardOutputContent" --output text
+              exit 1
+            fi
+            echo "Installing Dependencies... Status: $STATUS"
+            # Print partial logs to simulate live logging
+            aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "StandardOutputContent" --output text
+            sleep 15
+          done
+
       - name: J11 - Silver Transformation
         run: |
-          CMD_ID=$(aws ssm send-command --instance-ids "i-0039eff1ed9cbe313" --document-name "AWS-RunShellScript" --parameters commands="[\"sudo yum install -y git python3.11 python3.11-pip\",\"if [ ! -d '/home/ec2-user/project-intelligent' ]; then git clone https://github.com/biteberry/project-intelligent.git /home/ec2-user/project-intelligent; fi\",\"cd /home/ec2-user/project-intelligent\",\"git fetch origin main\",\"git reset --hard origin/main\",\"python3.11 -m pip install --upgrade pip wheel setuptools\",\"pip3.11 install --user --only-binary :all: -r requirements_heavy.txt\",\"python3.11 src/silver/j11_silver_transformation.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
+          CMD_ID=$(aws ssm send-command --instance-ids "i-0039eff1ed9cbe313" --document-name "AWS-RunShellScript" --parameters commands="[\"cd /home/ec2-user/project-intelligent\",\"python3.11 src/silver/j11_silver_transformation.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
           
           while true; do
             STATUS=$(aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "Status" --output text)
@@ -123,8 +148,10 @@ jobs:
               aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "StandardOutputContent" --output text
               exit 1
             fi
-            echo "Command is $STATUS... waiting 30 seconds"
-            sleep 30
+            echo "Running J11... Status: $STATUS"
+            # Print partial logs to simulate live logging
+            aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-0039eff1ed9cbe313" --region ap-south-1 --query "StandardOutputContent" --output text
+            sleep 15
           done
 
       - name: Stop Heavy Node B
