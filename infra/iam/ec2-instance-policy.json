@@ -45,7 +45,8 @@
                 "ssmmessages:CreateControlChannel",
                 "ssmmessages:CreateDataChannel",
                 "ssmmessages:OpenControlChannel",
-                "ssmmessages:OpenDataChannel"
+                "ssmmessages:OpenDataChannel",
+                "sns:Publish"
             ],
             "Resource": "*"
         },
