@@ -12,6 +12,7 @@ urllib3
 yfinance
 pyarrow
 tenacity
+beautifulsoup4
 boto3
 botocore
 pandas_market_calendars<4.4.0
