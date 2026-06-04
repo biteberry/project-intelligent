@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 from src.utils.audit import write_audit_record
 from src.utils.alerts import publish_sns_alert
-from src.silver.iceberg_manager import write_arrow_to_iceberg
+from src.utils.iceberg_manager import write_arrow_to_iceberg
 
 def execute_grand_join() -> 'pyarrow.Table':
     """
