@@ -65,9 +65,11 @@
             "Effect": "Allow",
             "Action": [
                 "glue:GetTable",
+                "glue:CreateTable",
                 "glue:UpdateTable",
                 "glue:BatchCreatePartition",
-                "glue:GetDatabase"
+                "glue:GetDatabase",
+                "glue:CreateDatabase"
             ],
             "Resource": [
                 "arn:aws:glue:*:*:catalog",
