@@ -1,0 +1,41 @@
+name: Annual Maintenance Reminder
+
+on:
+  schedule:
+    # Run at 00:00 on April 1st every year
+    - cron: '0 0 1 4 *'
+  workflow_dispatch: # Allow manual triggering for testing
+
+permissions:
+  issues: write
+
+jobs:
+  create-reminder-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Annual Maintenance Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const year = new Date().getFullYear();
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[MAINTENANCE] Update India Macro Events Calendar for ${year}-${year+1}`,
+              body: `## Annual Maintenance Task
+              
+            It is April! This means the RBI has likely released their new Monetary Policy Committee (MPC) schedule for the new financial year.
+            
+            ### Task
+            Please update \`configs/india_macro_events.yaml\` with the new dates.
+            
+            ### Instructions
+            1. Go to the [RBI Press Releases](https://rbi.org.in/scripts/BS_PressReleaseDisplay.aspx).
+            2. Search for "Monetary Policy Committee meeting schedule" or "MPC schedule".
+            3. Note down the 6 meeting dates. (Use the final day of the meeting as the \`event_date\`).
+            4. If the exact date for next year's Union Budget is known (usually Feb 1st), ensure it is present.
+            5. Update the YAML file and commit the changes.
+            
+            *The J07 pipeline will automatically read your new dates and update the database during the next weekend run.*`,
+              labels: ['maintenance', 'priority:high']
+            })

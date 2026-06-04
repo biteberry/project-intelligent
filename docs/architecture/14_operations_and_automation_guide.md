@@ -143,6 +143,22 @@ These require your time only once at project start, or once per year thereafter.
 | Finnhub API key setup | Project start | 5 minutes: register free account, store key in AWS Secrets Manager | Automated thereafter |
 | RBI data source setup | Project start | 30 minutes: configure weekly scrape endpoint in pipeline config | Automated weekly |
 
+### 4.1 How to manually update the India Macro Events Calendar
+
+Because it is brittle to build automated scrapers for government websites, the RBI MPC and Union Budget dates are maintained manually. An automated GitHub Action (`.github/workflows/annual_maintenance_reminder.yml`) runs every year on April 1st to remind you to do this.
+
+**To perform the update:**
+1. Open the file: `configs/india_macro_events.yaml` in this repository.
+2. **For RBI MPC Dates:** 
+   - Go to the [RBI Press Releases website](https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx).
+   - Search the press releases for "Monetary Policy Committee meeting schedule". (They publish all 6 dates for the upcoming financial year at once).
+   - Update the YAML file using the *last day* of each meeting window as the `event_date`.
+3. **For Union Budget:**
+   - Wait until the Finance Ministry officially announces the Union Budget date (typically February 1st).
+   - Add this single date to the YAML file.
+4. **Commit the changes:** Just commit and push to the `main` branch. 
+5. **Automation takes over:** The automated weekly J07 pipeline will automatically detect your changes on Saturday and sync them to the S3 database without any further manual steps!
+
 ---
 
 ## Section 5 — Governance Actions (As Needed, Not Regular)
