@@ -36,8 +36,9 @@ def parse_circuit_bands(s3_uri: str, date_str: str) -> pd.DataFrame:
     # Drop the original Band column
     df = df.drop(columns=['Band'])
     
-    # Rename Symbol to symbol for consistency
+    # Rename Symbol to symbol for consistency and append .NS suffix
     df = df.rename(columns={'Symbol': 'symbol'})
+    df['symbol'] = df['symbol'] + '.NS'
     
     # Add metadata
     df['date'] = date_str
