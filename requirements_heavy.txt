@@ -20,6 +20,6 @@ botocore
 pandas_market_calendars<4.4.0
 duckdb
 pyiceberg[s3fs,glue]
-git+https://github.com/twopirllc/pandas-ta.git@main
+https://github.com/twopirllc/pandas-ta/archive/refs/heads/main.zip
 scipy
 statsmodels
