@@ -37,7 +37,9 @@ jobs:
               \"echo 'Starting J01 (Yahoo Finance OHLCV)'\",
               \"python3 src/ingestion/j01_ohlcv_daily.py\",
               \"echo 'Starting J02 (NSE Delivery Pct)'\",
-              \"python3 src/ingestion/j02_delivery_pct_daily.py\"
+              \"python3 src/ingestion/j02_delivery_pct_daily.py\",
+              \"echo 'Starting J09 (Finnhub Sentiment)'\",
+              \"python3 src/ingestion/j09_sentiment_daily.py\"
             ]" \
             --timeout-seconds 900 \
             --region ap-south-1 \
