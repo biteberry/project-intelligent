@@ -43,7 +43,9 @@ jobs:
               \"echo 'Starting J06 (Earnings Calendar)'\",
               \"python3 src/ingestion/j06_earnings_calendar_weekly.py\",
               \"echo 'Starting J07 (Macro Events Reference)'\",
-              \"python3 src/ingestion/j07_macro_events_reference.py\"
+              \"python3 src/ingestion/j07_macro_events_reference.py\",
+              \"echo 'Starting J08 (NSE Circuit Bands)'\",
+              \"python3 src/ingestion/j08_circuit_bands_weekly.py\"
             ]" \
             --timeout-seconds 900 \
             --region ap-south-1 \
