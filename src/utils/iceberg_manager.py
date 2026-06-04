@@ -49,8 +49,11 @@ def write_arrow_to_iceberg(table_name: str, arrow_table: pa.Table, namespace: st
         print(f"Appending to existing Iceberg table: {full_table_name}")
         table.append(arrow_table)
     except NoSuchTableError:
-        # Create new table using the schema of the pyarrow table
-        s3_bucket = os.environ.get('S3_SILVER_BUCKET', 'project-intelligent-silver-307828758318')
+        if "gold" in namespace:
+            s3_bucket = os.environ.get('S3_GOLD_BUCKET', 'project-intelligent-gold-307828758318')
+        else:
+            s3_bucket = os.environ.get('S3_SILVER_BUCKET', 'project-intelligent-silver-307828758318')
+            
         location = f"s3://{s3_bucket}/{table_name}"
         
         print(f"Creating new Iceberg table {full_table_name} at {location}")
