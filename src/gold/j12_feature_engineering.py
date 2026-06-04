@@ -36,6 +36,7 @@ def main():
         
         print("Loading Silver data into memory for Feature Engineering...")
         df = con.execute(query).df()
+        df.columns = df.columns.str.lower()
         
         if df.empty:
             print("No data found to compute features.")

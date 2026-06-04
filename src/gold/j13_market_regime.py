@@ -35,6 +35,7 @@ def main():
         """
         
         df = con.execute(query).df()
+        df.columns = df.columns.str.lower()
         
         if df.empty:
             print("No data found to compute market regime.")
