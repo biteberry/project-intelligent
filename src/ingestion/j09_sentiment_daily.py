@@ -42,6 +42,11 @@ def main():
         # 2. Parse
         df = parse_sentiment(s3_uri)
         
+        if len(df) == 0:
+            print("Parsed DataFrame is empty. No sentiment records to write.")
+            write_audit_record(run_id, job_id, "SUCCESS", metrics)
+            sys.exit(0)
+            
         # 3. Add context and write
         df['fetch_date'] = date_str
         df['ingestion_timestamp'] = datetime.utcnow()
