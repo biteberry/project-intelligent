@@ -20,6 +20,9 @@ def execute_grand_join() -> 'pyarrow.Table':
     
     con = duckdb.connect()
     
+    # Set home directory to /tmp because SSM execution doesn't have $HOME
+    con.execute("SET home_directory='/tmp';")
+    
     # Load required extensions
     con.execute("INSTALL httpfs;")
     con.execute("LOAD httpfs;")
