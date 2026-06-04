@@ -31,36 +31,58 @@ def execute_grand_join() -> 'pyarrow.Table':
     con.execute("CALL load_aws_credentials();")
     con.execute("SET s3_region='ap-south-1';")
     
-    # The Grand Join Query
-    query = f"""
-    SELECT 
-        o.symbol,
-        o.date,
-        o.open,
-        o.high,
-        o.low,
-        o.close,
-        o.volume,
-        o.market_context,
-        o.ingestion_run_id AS bronze_ohlcv_run_id,
-        COALESCE(c.circuit_band, NULL) AS circuit_band,
-        COALESCE(s.sentiment_score, 0.0) AS sentiment_score,
-        COALESCE(s.sentiment_direction, 0) AS sentiment_direction,
-        COALESCE(s.news_intensity, 0) AS news_intensity,
-        COALESCE(s.news_coverage_flag, 'low') AS news_coverage_flag,
-        COALESCE(d.delivery_pct, 0.0) AS delivery_pct,
-        -- Generate the silver metadata
-        current_timestamp AS silver_ingestion_timestamp
-    FROM read_parquet('{s3_prefix}/ohlcv/*/*/*.parquet') o
-    LEFT JOIN read_parquet('{s3_prefix}/circuit_bands/*/*/*.parquet') c
-        ON o.symbol = c.symbol AND o.date = c.date
-    LEFT JOIN read_parquet('{s3_prefix}/sentiment/*/*/*.parquet') s
-        ON o.symbol = s.symbol AND o.date = s.fetch_date
-    LEFT JOIN read_parquet('{s3_prefix}/delivery_pct/*/*/*.parquet') d
-        ON o.symbol = d.symbol AND o.date = d.date
-    """
+    import boto3
+    s3 = boto3.client('s3', region_name='ap-south-1')
     
-    print("Executing DuckDB Grand Join across S3 Bronze Parquet files...")
+    def has_files(prefix):
+        res = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1)
+        return 'Contents' in res and len(res['Contents']) > 0
+
+    has_circuit = has_files('circuit_bands/')
+    has_sentiment = has_files('sentiment/')
+    has_delivery = has_files('delivery_pct/')
+    
+    # Base SELECT clauses
+    select_clauses = [
+        "o.symbol", "o.date", "o.open", "o.high", "o.low", "o.close", "o.volume",
+        "o.market_context", "o.ingestion_run_id AS bronze_ohlcv_run_id"
+    ]
+    
+    join_clauses = []
+    
+    if has_circuit:
+        select_clauses.append("COALESCE(c.circuit_band, NULL) AS circuit_band")
+        join_clauses.append(f"LEFT JOIN read_parquet('{s3_prefix}/circuit_bands/*/*/*.parquet') c ON o.symbol = c.symbol AND o.date = c.date")
+    else:
+        select_clauses.append("NULL AS circuit_band")
+        
+    if has_sentiment:
+        select_clauses.extend([
+            "COALESCE(s.sentiment_score, 0.0) AS sentiment_score",
+            "COALESCE(s.sentiment_direction, 0) AS sentiment_direction",
+            "COALESCE(s.news_intensity, 0) AS news_intensity",
+            "COALESCE(s.news_coverage_flag, 'low') AS news_coverage_flag"
+        ])
+        join_clauses.append(f"LEFT JOIN read_parquet('{s3_prefix}/sentiment/*/*/*.parquet') s ON o.symbol = s.symbol AND o.date = s.fetch_date")
+    else:
+        select_clauses.extend([
+            "0.0 AS sentiment_score",
+            "0 AS sentiment_direction",
+            "0 AS news_intensity",
+            "'low' AS news_coverage_flag"
+        ])
+        
+    if has_delivery:
+        select_clauses.append("COALESCE(d.delivery_pct, 0.0) AS delivery_pct")
+        join_clauses.append(f"LEFT JOIN read_parquet('{s3_prefix}/delivery_pct/*/*/*.parquet') d ON o.symbol = d.symbol AND o.date = d.date")
+    else:
+        select_clauses.append("0.0 AS delivery_pct")
+        
+    select_clauses.append("current_timestamp AS silver_ingestion_timestamp")
+    
+    query = f"SELECT {', '.join(select_clauses)} FROM read_parquet('{s3_prefix}/ohlcv/*/*/*.parquet') o " + " ".join(join_clauses)
+    
+    print(f"Executing dynamic DuckDB Grand Join...")
     arrow_table = con.execute(query).arrow()
     return arrow_table
 

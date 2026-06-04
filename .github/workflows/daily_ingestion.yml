@@ -38,7 +38,6 @@ jobs:
           done
 
       - name: J02 - NSE Delivery Pct
-        if: false
         run: |
           CMD_ID=$(aws ssm send-command --instance-ids "i-004ede57a842280fe" --document-name "AWS-RunShellScript" --parameters commands="[\"cd /home/ec2-user/project-intelligent\",\"python3 src/ingestion/j02_delivery_pct_daily.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
           
@@ -62,7 +61,6 @@ jobs:
           done
 
       - name: J09 - Finnhub Sentiment
-        if: false
         run: |
           CMD_ID=$(aws ssm send-command --instance-ids "i-004ede57a842280fe" --document-name "AWS-RunShellScript" --parameters commands="[\"cd /home/ec2-user/project-intelligent\",\"python3 src/ingestion/j09_sentiment_daily.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
           
