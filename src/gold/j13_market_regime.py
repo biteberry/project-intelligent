@@ -18,6 +18,7 @@ def main():
     
     try:
         con = duckdb.connect()
+        con.execute("SET home_directory='/tmp';")
         con.execute("INSTALL iceberg; LOAD iceberg;")
         con.execute("INSTALL aws; LOAD aws; CALL load_aws_credentials();")
         con.execute("SET s3_region='ap-south-1';")
