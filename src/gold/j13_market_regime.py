@@ -68,6 +68,11 @@ def main():
         # Write to Gold Layer
         import pyarrow as pa
         arrow_table = pa.Table.from_pandas(regime_df)
+        # Cast timestamp from ns to us for Iceberg compatibility
+        idx = arrow_table.schema.get_field_index('date')
+        new_schema = arrow_table.schema.set(idx, pa.field('date', pa.timestamp('us')))
+        arrow_table = arrow_table.cast(new_schema)
+
         
         table_name = "market_regime"
         full_table_name = write_arrow_to_iceberg(table_name, arrow_table, namespace="project_intelligent_gold")
