@@ -1,4 +1,4 @@
-name: Weekly Batch Ingestion (J03, J05)
+name: Weekly Batch Ingestion (J03, J04, J05)
 
 on:
   # Run automatically every Saturday at 8:00 AM UTC (1:30 PM IST)
@@ -10,7 +10,7 @@ on:
 
 jobs:
   run-weekly-batch:
-    name: Run Weekly Batch (J03, J05) on EC2
+    name: Run Weekly Batch (J03, J04, J05) on EC2
     runs-on: ubuntu-latest
     
     steps:
@@ -36,6 +36,8 @@ jobs:
               \"pip3 install --user beautifulsoup4 requests\",
               \"echo 'Starting J03 (Fundamentals)'\",
               \"python3 src/ingestion/j03_fundamentals_quarterly.py\",
+              \"echo 'Starting J04 (Corporate Actions)'\",
+              \"python3 src/ingestion/j04_corporate_actions_weekly.py\",
               \"echo 'Starting J05 (India Macro)'\",
               \"python3 src/ingestion/j05_macro_weekly.py\"
             ]" \
