@@ -78,6 +78,14 @@ def execute_grand_join() -> 'pyarrow.Table':
     else:
         select_clauses.append("0.0 AS delivery_pct")
         
+    # Join static sector mapping
+    sector_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data/sectors_master.csv'))
+    select_clauses.extend([
+        "COALESCE(sec.sector, 'Others') AS sector",
+        "COALESCE(sec.industry, 'Others') AS industry"
+    ])
+    join_clauses.append(f"LEFT JOIN read_csv_auto('{sector_csv_path}') sec ON o.symbol = sec.symbol")
+        
     select_clauses.append("CAST(current_timestamp AS TIMESTAMP) AS silver_ingestion_timestamp")
     
     query = f"SELECT {', '.join(select_clauses)} FROM read_parquet('{s3_prefix}/ohlcv/*/*/*.parquet') o " + " ".join(join_clauses)
