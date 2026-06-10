@@ -78,6 +78,22 @@ def execute_grand_join() -> 'pyarrow.Table':
     else:
         select_clauses.append("0.0 AS delivery_pct")
         
+    # Join macro data (broadcasted across all symbols for the same date)
+    has_macro = has_files('macroeconomics/')
+    if has_macro:
+        select_clauses.extend([
+            "COALESCE(m.gold_usd, NULL) AS gold_usd",
+            "COALESCE(m.crude_oil_usd, NULL) AS crude_oil_usd",
+            "COALESCE(m.gold_inr, NULL) AS gold_inr"
+        ])
+        join_clauses.append(f"LEFT JOIN read_parquet('{s3_prefix}/macroeconomics/*/*/*.parquet') m ON o.date = m.date")
+    else:
+        select_clauses.extend([
+            "NULL AS gold_usd",
+            "NULL AS crude_oil_usd",
+            "NULL AS gold_inr"
+        ])
+        
     # Join static sector mapping
     sector_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data/sectors_master.csv'))
     select_clauses.extend([

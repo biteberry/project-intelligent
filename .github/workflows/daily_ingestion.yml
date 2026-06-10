@@ -66,6 +66,26 @@ jobs:
             sleep 15
           done
 
+      - name: J03 - Macroeconomic Indicators
+        run: |
+          CMD_ID=$(aws ssm send-command --instance-ids "i-004ede57a842280fe" --document-name "AWS-RunShellScript" --parameters commands="[\"cd /home/ec2-user/project-intelligent\",\"python3 src/ingestion/j03_macro_daily.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
+          
+          while true; do
+            STATUS=$(aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-004ede57a842280fe" --region ap-south-1 --query "Status" --output text)
+            if [ "$STATUS" == "Success" ]; then
+              echo "Command Succeeded."
+              echo "--- STDOUT ---"
+              aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-004ede57a842280fe" --region ap-south-1 --query "StandardOutputContent" --output text
+              break
+            elif [[ "$STATUS" == "Failed" || "$STATUS" == "DeliveryTimedOut" || "$STATUS" == "ExecutionTimedOut" ]]; then
+              echo "Command Failed with status: $STATUS"
+              echo "--- STDERR ---"
+              aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "i-004ede57a842280fe" --region ap-south-1 --query "StandardErrorContent" --output text
+              exit 1
+            fi
+            sleep 15
+          done
+
       - name: J09 - Finnhub Sentiment
         run: |
           CMD_ID=$(aws ssm send-command --instance-ids "i-004ede57a842280fe" --document-name "AWS-RunShellScript" --parameters commands="[\"cd /home/ec2-user/project-intelligent\",\"python3 src/ingestion/j09_sentiment_daily.py\"]" --timeout-seconds 900 --region ap-south-1 --query "Command.CommandId" --output text)
