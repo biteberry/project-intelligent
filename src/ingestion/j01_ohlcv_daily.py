@@ -34,7 +34,7 @@ def run_j01(dry_run=False):
         # Fetch all data in bulk
         print(f"Fetching OHLCV data for {len(symbols)} symbols in bulk...")
         # batching might be required if universe exceeds a certain size, but 2400 is fine for yfinance bulk download
-        df_raw = yf.download(symbols, period="1d", group_by="ticker", threads=True, progress=False)
+        df_raw = yf.download(symbols, period="1d", group_by="ticker", threads=False, progress=False)
         
         if df_raw.empty:
             raise ValueError("yfinance returned an empty dataframe. Is the market open?")

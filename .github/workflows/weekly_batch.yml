@@ -21,6 +21,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+      - name: Start Lightweight Node A
+        run: |
+          aws ec2 start-instances --instance-ids i-004ede57a842280fe --region ap-south-1
+          aws ec2 wait instance-running --instance-ids i-004ede57a842280fe --region ap-south-1
+          sleep 15
+
       - name: Execute Pipeline via AWS SSM
         run: |
           # Dispatch the SSM Command
@@ -80,3 +86,8 @@ jobs:
           fi
           
           echo "Pipeline executed successfully!"
+
+      - name: Stop Lightweight Node A
+        if: always()
+        run: |
+          aws ec2 stop-instances --instance-ids i-004ede57a842280fe --region ap-south-1
