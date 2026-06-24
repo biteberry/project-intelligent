@@ -11,6 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 from src.utils.market_context import get_market_context
 from src.ingestion.bronze_writer import write_dataframe_to_bronze
+from src.ingestion.landing_writer import write_raw_csv_to_landing
 from src.utils.audit import write_audit_record
 from src.utils.alerts import publish_sns_alert
 from src.utils.universe import get_universe
@@ -39,7 +40,14 @@ def run_j01(dry_run=False):
         if df_raw.empty:
             raise ValueError("yfinance returned an empty dataframe. Is the market open?")
             
-        print("Data fetched. Flattening structure...")
+        print("Data fetched. Writing raw payload to Landing layer...")
+        if not dry_run:
+            landing_path = write_raw_csv_to_landing(df_raw, table_name="ohlcv", file_name=f"raw_yfinance_{run_id}.csv")
+            print(f"  -> Written raw CSV to {landing_path}")
+        else:
+            print(f"  -> [DRY RUN] Would write raw CSV to Landing.")
+
+        print("Flattening structure for Bronze...")
         
         # Flatten multi-index
         df_flat = df_raw.stack(level=0).reset_index()
