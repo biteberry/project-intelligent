@@ -42,7 +42,7 @@ def run_j01(dry_run=False):
         print("Data fetched. Flattening structure...")
         
         # Flatten multi-index
-        df_flat = df_raw.stack(level=0, future_stack=True).reset_index()
+        df_flat = df_raw.stack(level=0).reset_index()
         # Rename multi-index columns to standard names
         df_flat = df_flat.rename(columns={'Ticker': 'symbol', 'level_1': 'symbol', 'Date': 'date'})
         # Lowercase all standard column names (open, high, low, close, volume)
